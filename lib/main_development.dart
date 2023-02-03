@@ -1,11 +1,16 @@
+import 'package:flutter/cupertino.dart';
 import 'package:wardrobe_frontend/bootstrap.dart';
 import 'package:wardrobe_frontend/rest/app/view/app.dart';
 import 'package:wardrobe_frontend/rest/util/log.dart';
 
-
 final logger = Log.instance;
+
 Future<void> main() async {
-  await bootstrap(() => const App());
+  // required if main is async
+  WidgetsFlutterBinding.ensureInitialized();
+  // boostrap == BlocOberser file/class
+  await bootstrap(() => const ArrayApp());
+
 }
 
 // void main() {
