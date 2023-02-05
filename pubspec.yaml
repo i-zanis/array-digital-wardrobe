@@ -4,11 +4,11 @@ version: 1.0.0+1
 publish_to: none
 
 environment:
-  sdk: ">=2.18.0 <3.0.0"
+  sdk: ">=2.18.0" #<3.0.0"
   flutter: 3.3.10
 
 dependencies:
-  bloc: ^8.1.0
+#   bloc: ^8.1.0
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.1
@@ -21,6 +21,9 @@ dependencies:
   fluttertoast: ^8.1.2
   dio: ^4.0.6
   json_serializable: ^6.6.0
+  stream_transform: ^2.1.0
+  logger: ^1.0.0
+  equatable: ^2.0.5
 
 dev_dependencies:
   bloc_test: ^9.1.0
