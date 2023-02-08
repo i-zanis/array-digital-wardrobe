@@ -1,12 +1,15 @@
+import 'package:Array_App/config/config.dart';
+import 'package:Array_App/main_development.dart';
 import 'package:dio/dio.dart';
-import 'package:wardrobe_frontend/domain/entity/item.dart';
+
+import '../../../domain/entity/item.dart';
 
 class RemoteItemDataSource {
-  RemoteItemDataSource({Dio? dio, String? baseUrl})
-      : _dio = dio ?? Dio(),
-        _baseUrl = baseUrl ?? 'http://localhost:8080/api/items';
+  RemoteItemDataSource({Dio? networkClient, String? baseUrl})
+      : networkClient = networkClient ?? Dio(),
+        _baseUrl = baseUrl ?? Config.itemsUrl;
 
-  final Dio _dio;
+  final Dio networkClient;
   final String _baseUrl;
 
 // Future<List<Item>> findAll() async {
@@ -20,7 +23,7 @@ class RemoteItemDataSource {
 
   Future<Item> findById(int id) async {
     try {
-      final response = await _dio.get('$_baseUrl/$id');
+      final response = await networkClient.get('$_baseUrl/$id');
       return Item.fromJson(response.data as Map<String, dynamic>);
     } on DioError catch (e) {
       throw _handleError(e);
@@ -29,7 +32,7 @@ class RemoteItemDataSource {
 
   Future<void> save(Item item) async {
     try {
-      await _dio.post<String>(_baseUrl, data: item.toJson());
+      await networkClient.post<String>(_baseUrl, data: item.toJson());
     } on DioError catch (e) {
       throw _handleError(e);
     }
@@ -37,7 +40,7 @@ class RemoteItemDataSource {
 
   Future<void> update(Item item) async {
     try {
-      await _dio.patch('$_baseUrl/${item.id}', data: item.toJson());
+      await networkClient.patch('$_baseUrl/${item.id}', data: item.toJson());
     } on DioError catch (e) {
       throw _handleError(e);
     }
@@ -45,37 +48,54 @@ class RemoteItemDataSource {
 
   Future<void> delete(int? id) async {
     try {
-      await _dio.delete('$_baseUrl/$id');
+      await networkClient.delete('$_baseUrl/$id');
+    } on DioError catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<Item>> findAll(int userId) async {
+    logger.d('RemoteItemDataSource: Retrieving all items with userId: $userId');
+    try {
+      final response = await networkClient.get('$_baseUrl/all/$userId');
+      logger.d('RemoteItemDataSource: response: $response');
+      final data = await response.data as List<dynamic>;
+      final items =
+          data.map((i) => Item.fromJson(i as Map<String, dynamic>)).toList();
+      return items;
     } on DioError catch (e) {
       throw _handleError(e);
     }
   }
 
   Exception _handleError(DioError error) {
+    logger.e('RemoteItemDataSource: Error: $error');
+    final statusCode = error.response?.statusCode;
     switch (error.type) {
       case DioErrorType.connectTimeout:
-        // TODO(jtl): Handle this case.
-        break;
+        return Exception(
+            'The connection timed out. Please check your internet connection and try again later.');
       case DioErrorType.sendTimeout:
-        // TODO(jtl): Handle this case.
-        break;
+        return Exception(
+            'The request timed out while sending. Please try again later.');
       case DioErrorType.receiveTimeout:
-        // TODO(jtl): Handle this case.
-        break;
+        return Exception(
+            'The response timed out while receiving. Please try again later.');
       case DioErrorType.response:
-        // TODO(jtl): Handle this case.
-        break;
+        if (statusCode == 404) {
+          return Exception(
+              'The requested resource could not be found. Please check the URL and try again.');
+        } else if (statusCode! >= 500 && statusCode < 600) {
+          return Exception('A server error occurred. Please try again later.');
+        } else {
+          return Exception(
+            'An error occurred while processing the request. Please try again later.',
+          );
+        }
       case DioErrorType.cancel:
-        // TODO(jtl): Handle this case.
-        break;
+        return Exception('The request was cancelled by the client.');
       case DioErrorType.other:
-        // TODO(jtl): Handle this case.
-        break;
+        return Exception('An unknown error occurred: $error');
     }
-    return Exception();
-  }
-
-  Future<List<Item>> findAll(int? userId) async {
-    return [];
   }
 }
