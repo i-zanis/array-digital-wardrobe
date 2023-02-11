@@ -1,26 +1,26 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:wardrobe_frontend/domain/add_item_use_case.dart';
-import 'package:wardrobe_frontend/domain/entity/item.dart';
-import 'package:wardrobe_frontend/domain/initial_load_use_case.dart';
-import 'package:wardrobe_frontend/main_development.dart';
 
+import '../domain/add_item_use_case.dart';
+import '../domain/entity/item.dart';
+import '../domain/initial_load_use_case.dart';
+import '../main_development.dart';
 import 'item_state.dart';
 
 class ItemBloc extends Bloc<ItemEvent, ItemState> {
   // final RemoveItemUseCase removeItemUseCase;
   // final LikeItemUseCase likeItemUseCase;
   // final SaveItemUseCase saveItemUseCase;
-  ItemBloc(this._addItemUseCase, this._initialLoadUseCase)
+  ItemBloc(this._saveItemUseCase, this._initialLoadUseCase)
       : super(const ItemState.initial()) {
-    logger.i('ItemBloc constructor');
+    // logger.i('ItemBloc constructor');
 
     on<ItemLoadStarted>(
       _onLoadStarted,
       transformer: (events, mapper) => events.switchMap(mapper),
     );
-    on<AddItem>(
+    on<SaveItem>(
       _onAddItem,
       transformer: (events, mapper) => events.switchMap(mapper),
     );
@@ -29,7 +29,7 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
   // ItemBloc(this.addItemUseCase, this.removeItemUseCase, this.likeItemUseCase,
   //     this.saveItemUseCase)
   //     : super(InitialItemState());
-  final AddItemUseCase _addItemUseCase;
+  final AddItemUseCase _saveItemUseCase;
   final InitialLoadUseCase _initialLoadUseCase;
 
   Future<void> _onLoadStarted(
@@ -45,12 +45,27 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
     }
   }
 
-  Future<void> _onAddItem(AddItem event, Emitter<ItemState> emit) async {
-    logger.i('On Add Item started..');
+  Future<void> _onAddItem(SaveItem event, Emitter<ItemState> emit) async {
+    logger.i('On AddItem started..');
     emit(state.asLoading());
-    await _addItemUseCase.execute(event.item);
+    try {
+      await _saveItemUseCase.execute(event.item);
+      emit(state.copyWith(items: [...state.items, event.item]));
+    } on Exception catch (e) {
+      emit(state.asLoadFailure(e));
+    }
   }
 
+  Future<void> _onDeleteItem(DeleteItem event, Emitter<ItemState> emit) async {
+    logger.i('On DeleteItem started..');
+    emit(state.asLoading());
+    try {
+      await _saveItemUseCase.execute(event.item);
+      emit(state.copyWith(items: [...state.items, event.item]));
+    } on Exception catch (e) {
+      emit(state.asLoadFailure(e));
+    }
+  }
 // Stream<ItemState> mapEventToState(ItemEvent event) async* {
 //   switch (event.type) {
 //     case ItemActions.add:
@@ -84,14 +99,6 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
 //***********************************************
 // FROM YOUTUBE VIDEO SEE IF NEEDED
 //***********************************************
-class LoadsItems extends ItemEvent {
-  final List<Item> items;
-
-  const LoadsItems({this.items = const <Item>[]});
-
-  @override
-  List<Object> get props => [items];
-}
 
 abstract class ItemEvent extends Equatable {
   const ItemEvent();
@@ -100,79 +107,60 @@ abstract class ItemEvent extends Equatable {
   List<Object> get props => [];
 }
 
+class LoadsItems extends ItemEvent {
+  const LoadsItems({this.items = const <Item>[]});
+
+  final List<Item> items;
+
+  @override
+  List<Object> get props => [items];
+}
+
 class ItemLoadStarted extends ItemEvent {}
 
-class AddItem extends ItemEvent {
-  final Item item;
+class SaveItem extends ItemEvent {
+  const SaveItem(this.item);
 
-  const AddItem(this.item);
+  final Item item;
 
   @override
   List<Object> get props => [item];
 }
 
 class LikeItem extends ItemEvent {
-  final Item item;
-
   const LikeItem(this.item);
 
-  @override
-  List<Object> get props => [item];
-}
-
-class SaveItem extends ItemEvent {
   final Item item;
-
-  const SaveItem(this.item);
 
   @override
   List<Object> get props => [item];
 }
 
-class RemoveItem extends ItemEvent {
+class UpdateItem extends ItemEvent {
+  const UpdateItem(this.item);
+
   final Item item;
 
-  const RemoveItem(this.item);
+  @override
+  List<Object> get props => [item];
+}
+
+class DeleteItem extends ItemEvent {
+  const DeleteItem(this.item);
+
+  final Item item;
 
   @override
   List<Object> get props => [item];
 }
 
 class FindItem extends ItemEvent {
-  final String query;
-
   const FindItem(this.query);
+
+  final String query;
 
   @override
   List<Object> get props => [query];
 }
 
-//   Stream<ItemState> _removeItem(Item item) async* {
-//     try {
-//       final result = await removeItemUseCase.call(item);
-//       yield ItemRemovedState(result);
-//     } catch (e) {
-//       yield ItemErrorState(e.toString());
-//     }
-//   }
-//
-//   Stream<ItemState> _likeItem(Item item) async* {
-//     try {
-//       final result = await likeItemUseCase.call(item);
-//       yield ItemLikedState(result);
-//     } catch (e) {
-//       yield ItemErrorState(e.toString());
-//     }
-//   }
-//
-//   Stream<ItemState> _saveItem(Item item) async* {
-//     try {
-//       final result = await saveItemUseCase.call(item);
-//       yield ItemSavedState(result);
-//     } catch (e) {
-//       yield ItemErrorState(e.toString());
-//     }
-//   }
-// }
-
-enum ItemActions { add, remove, like, save }
+enum ItemActions { add, delete, like, save }
