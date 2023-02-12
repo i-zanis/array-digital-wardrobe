@@ -3,16 +3,17 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import '../domain/add_item_use_case.dart';
+import '../domain/delete_item_use_case.dart';
 import '../domain/entity/item.dart';
 import '../domain/initial_load_use_case.dart';
+import '../domain/update_item_use_case.dart';
 import '../main_development.dart';
 import 'item_state.dart';
 
 class ItemBloc extends Bloc<ItemEvent, ItemState> {
-  // final RemoveItemUseCase removeItemUseCase;
   // final LikeItemUseCase likeItemUseCase;
-  // final SaveItemUseCase saveItemUseCase;
-  ItemBloc(this._saveItemUseCase, this._initialLoadUseCase)
+  ItemBloc(
+      this._saveItemUseCase, this._initialLoadUseCase, this.deleteItemUseCase)
       : super(const ItemState.initial()) {
     // logger.i('ItemBloc constructor');
 
@@ -21,7 +22,15 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
       transformer: (events, mapper) => events.switchMap(mapper),
     );
     on<SaveItem>(
-      _onAddItem,
+      _onSaveItem,
+      transformer: (events, mapper) => events.switchMap(mapper),
+    );
+    on<DeleteItem>(
+      _onDeleteItem,
+      transformer: (events, mapper) => events.switchMap(mapper),
+    );
+    on<UpdateItem>(
+      _onUpdateItem,
       transformer: (events, mapper) => events.switchMap(mapper),
     );
   }
@@ -29,8 +38,10 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
   // ItemBloc(this.addItemUseCase, this.removeItemUseCase, this.likeItemUseCase,
   //     this.saveItemUseCase)
   //     : super(InitialItemState());
-  final AddItemUseCase _saveItemUseCase;
   final InitialLoadUseCase _initialLoadUseCase;
+  final SaveItemUseCase _saveItemUseCase;
+  final DeleteItemUseCase deleteItemUseCase;
+  final UpdateItemUseCase _updateItemUseCase;
 
   Future<void> _onLoadStarted(
       ItemLoadStarted event, Emitter<ItemState> emit) async {
@@ -45,12 +56,12 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
     }
   }
 
-  Future<void> _onAddItem(SaveItem event, Emitter<ItemState> emit) async {
-    logger.i('On AddItem started..');
+  Future<void> _onSaveItem(SaveItem event, Emitter<ItemState> emit) async {
+    logger.i('On SaveItem started..');
     emit(state.asLoading());
     try {
       await _saveItemUseCase.execute(event.item);
-      emit(state.copyWith(items: [...state.items, event.item]));
+      emit(state.asSaveSuccess(event.item));
     } on Exception catch (e) {
       emit(state.asLoadFailure(e));
     }
@@ -66,6 +77,19 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
       emit(state.asLoadFailure(e));
     }
   }
+
+  Future<void> _onUpdateItem(DeleteItem event, Emitter<ItemState> emit) async {
+    logger.i('On UpdateItem started..');
+    emit(state.asLoading());
+    try {
+      await _updateItemUseCase.execute(event.item);
+      final items = state.items.where((i) => event.item.id != i.id).toList();
+      emit(state.copyWith(items: [...items, event.item]));
+    } on Exception catch (e) {
+      emit(state.asLoadFailure(e));
+    }
+  }
+
 // Stream<ItemState> mapEventToState(ItemEvent event) async* {
 //   switch (event.type) {
 //     case ItemActions.add:

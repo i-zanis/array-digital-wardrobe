@@ -8,7 +8,6 @@ class ItemState extends Equatable {
     this.status = ItemStateStatus.initial,
     this.items = const [],
     this.selectedItemIndex = 0,
-    this.page = 1,
     this.error,
   });
 
@@ -16,12 +15,12 @@ class ItemState extends Equatable {
   final ItemStateStatus status;
   final List<Item> items;
   final int selectedItemIndex;
-  final int page;
   final Exception? error;
 
   Item get selectedItem {
     if (items.isEmpty) {
       // return Item(null, null, null, null, null, null, null, null);
+      // TODO(jtl): Fix this after testing period
       return Item(userId: 1);
     }
     return items[selectedItemIndex];
@@ -37,7 +36,6 @@ class ItemState extends Equatable {
     return copyWith(
       status: ItemStateStatus.loadSuccess,
       items: items,
-      page: 1,
     );
   }
 
@@ -49,7 +47,7 @@ class ItemState extends Equatable {
   }
 
   ItemState asUpdateSuccess(Item item) {
-    final filteredItems = items.where((i) => item.id != i.id).toList();
+    final filteredItems = items.where((i) => i.id != item.id).toList();
     return copyWith(
       status: ItemStateStatus.loadSuccess,
       items: [...filteredItems, item],
@@ -63,39 +61,16 @@ class ItemState extends Equatable {
     );
   }
 
-  ItemState asLoadingMore() {
-    return copyWith(status: ItemStateStatus.loadingMore);
-  }
-
-  ItemState asLoadMoreSuccess(List<Item> newItems, {bool canLoadMore = true}) {
-    return copyWith(
-      status: ItemStateStatus.loadMoreSuccess,
-      items: [...items, ...newItems],
-      page: canLoadMore ? page + 1 : page,
-      canLoadMore: canLoadMore,
-    );
-  }
-
-  ItemState asLoadMoreFailure(Exception e) {
-    return copyWith(
-      status: ItemStateStatus.loadMoreFailure,
-      error: e,
-    );
-  }
-
   ItemState copyWith({
     ItemStateStatus? status,
     List<Item>? items,
-    int? selectedPokemonIndex,
-    int? page,
-    bool? canLoadMore,
+    int? selectedItemIndex,
     Exception? error,
   }) {
     return ItemState._(
       status: status ?? this.status,
       items: items ?? this.items,
-      selectedItemIndex: selectedItemIndex,
-      page: page ?? this.page,
+      selectedItemIndex: selectedItemIndex ?? this.selectedItemIndex,
       error: error ?? this.error,
     );
   }
@@ -105,7 +80,6 @@ class ItemState extends Equatable {
         status,
         items,
         selectedItemIndex,
-        page,
         error,
       ];
 }
@@ -115,9 +89,6 @@ enum ItemStateStatus {
   loading,
   loadSuccess,
   loadFailure,
-  loadingMore,
-  loadMoreSuccess,
-  loadMoreFailure,
 }
 
 // class ItemLoading extends ItemState {
