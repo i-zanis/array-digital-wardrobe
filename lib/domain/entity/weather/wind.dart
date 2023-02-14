@@ -6,6 +6,7 @@ class Wind {
     deg = 0;
     gust = 0;
   }
+
   late double speed;
   late int deg;
   late double gust;

@@ -12,6 +12,7 @@ class Weather {
     description = json['description'] as String;
     icon = json['icon'] as String;
   }
+
   late int id;
   late String main;
   late String description;

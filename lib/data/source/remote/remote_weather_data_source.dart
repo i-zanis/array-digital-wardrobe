@@ -1,24 +1,29 @@
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
+import 'package:Array_App/config/config.dart';
+import 'package:Array_App/data/network_client.dart';
+import 'package:Array_App/data/network_client_factory.dart';
+import 'package:Array_App/domain/entity/weather/current_weather_data.dart';
+import 'package:Array_App/main_development.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import '../../../config/config.dart';
-import '../../../domain/entity/weather/current_weather_data.dart';
-
 class RemoteWeatherDataSource {
-  RemoteWeatherDataSource({Dio? networkClient, String? baseUrl})
-      : networkClient = networkClient ?? Dio(),
-        _baseUrl = baseUrl ?? Config.baseUrl;
+  RemoteWeatherDataSource({NetworkClient? networkClient, String? baseUrl})
+      : _client = networkClient ?? NetworkClientFactory.create(),
+        _baseUrl = baseUrl ?? Config.weatherUrl;
 
-  final Dio networkClient;
+  final NetworkClient _client;
   final String _baseUrl;
 
-  Future<dynamic> getWeatherData(String city) async {
-    final response = await networkClient.get(
+  Future<CurrentWeatherData> getWeatherData(String city) async {
+    logger.i('$RemoteWeatherDataSource: getWeatherData($city)');
+    final response = await _client.get(
       "$_baseUrl?q=$city,uk&appid=${dotenv.env['OPEN_WEATHER_MAP_API_KEY']}",
     );
-    final json = await jsonDecode(response.data.toString());
+    logger.i(
+      '$RemoteWeatherDataSource: getWeatherData($city) response: $response',
+    );
+    final json = await jsonDecode(jsonEncode(response.data));
     return CurrentWeatherData.fromJson(json as Map<String, dynamic>);
   }
 }
