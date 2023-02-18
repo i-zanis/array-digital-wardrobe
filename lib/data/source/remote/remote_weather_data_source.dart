@@ -1,15 +1,16 @@
 import 'dart:convert';
 
 import 'package:Array_App/config/config.dart';
-import 'package:Array_App/data/network_client.dart';
-import 'package:Array_App/data/network_client_factory.dart';
+import 'package:Array_App/data/source/network_client_factory.dart';
 import 'package:Array_App/domain/entity/weather/current_weather_data.dart';
 import 'package:Array_App/main_development.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import '../network_client.dart';
+
 class RemoteWeatherDataSource {
-  RemoteWeatherDataSource({NetworkClient? networkClient, String? baseUrl})
-      : _client = networkClient ?? NetworkClientFactory.create(),
+  RemoteWeatherDataSource({NetworkClient? client, String? baseUrl})
+      : _client = client ?? NetworkClientFactory.create(),
         _baseUrl = baseUrl ?? Config.weatherUrl;
 
   final NetworkClient _client;
