@@ -1,11 +1,11 @@
-import 'package:Array_App/data/network_client.dart';
+import 'package:Array_App/data/source/network_client.dart';
 import 'package:dio/dio.dart';
 
 class DioNetworkClient implements NetworkClient {
   DioNetworkClient() {
     _dio.options.connectTimeout = 5000;
     _dio.options.receiveTimeout = 5000;
-    _dio.interceptors.add(LogInterceptor(responseBody: true));
+    // _dio.interceptors.add(LogInterceptor(responseBody: true));
   }
 
   static final Dio _dio = Dio();
