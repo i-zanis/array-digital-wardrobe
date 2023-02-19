@@ -8,6 +8,7 @@ class Coord {
     lon = json['lon'] as double;
     lat = json['lat'] as double;
   }
+
   late double lon;
   late double lat;
 
