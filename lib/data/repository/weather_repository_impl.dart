@@ -1,7 +1,6 @@
-import 'package:Array_App/data/source/remote/remote_weather_data_source.dart';
+import 'package:Array_App/data/data_source/remote/remote_weather_data_source.dart';
 import 'package:Array_App/domain/entity/weather/current_weather_data.dart';
-
-import '../../domain/weather_repository.dart';
+import 'package:Array_App/domain/repository/weather_repository.dart';
 
 class WeatherRepositoryImpl extends WeatherRepository {
   factory WeatherRepositoryImpl() {
@@ -26,7 +25,5 @@ class WeatherRepositoryImpl extends WeatherRepository {
     return Future.value(CurrentWeatherData());
   }
 
-  bool _isStale() {
-    return DateTime.now().difference(_lastUpdate) > _timeToLive;
-  }
+  bool _isStale() => DateTime.now().difference(_lastUpdate) > _timeToLive;
 }
