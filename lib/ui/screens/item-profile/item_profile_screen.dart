@@ -1,10 +1,14 @@
 import 'package:Array_App/l10n/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../bloc/item_bloc.dart';
-import '../../../bloc/item_state.dart';
-import '../../../domain/entity/item.dart';
+import '../../../bloc/item/item_bloc.dart';
+import '../../../bloc/item/item_state.dart';
+import '../../../domain/entity/item/item.dart';
+import '../../../domain/entity/item/tag.dart';
+import '../../../rest/util/constants.dart';
+import '../../../routes.dart';
 import '../../widget/bottom_nav_bar.dart';
 
 class ItemProfileScreen extends StatelessWidget {
@@ -21,22 +25,15 @@ class ItemProfileScreen extends StatelessWidget {
     TextEditingController _tagController = TextEditingController();
     TextEditingController _otherController = TextEditingController();
     bool isEditing = false;
-    var item = Item();
-
+    final item = Item(
+      userId: 1,
+    );
     return Scaffold(
       body: BlocListener<ItemBloc, ItemState>(
-        listener: (context, state) {
-          if (state.status == ItemStateStatus.loadSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('To Do Added!'),
-              ),
-            );
-          }
-        },
+        listener: (context, state) {},
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8),
             child: Column(
               children: [
                 const SizedBox(height: 20),
@@ -73,18 +70,16 @@ class ItemProfileScreen extends StatelessWidget {
                 _inputField(l10.itemProfileScreenLabelOther, _otherController),
                 ElevatedButton(
                   onPressed: () {
-                    // TODO(jtl) when you save the item through the request
-                    // on return you save it to get the proper id
-
-                    // var todo = Todo(
-                    //   id: controllerId.value.text,
-                    //   task: controllerTask.value.text,
-                    //   description: controllerDescription.value.text,
-                    //   );
-                    //   context.read<TodosBloc>().add(
-                    //         AddTodo(todo: todo),
-                    //       );
-                    //   Navigator.pop(context);
+                    handleSave(
+                        _nameController,
+                        _brandController,
+                        _sizeController,
+                        _colorController,
+                        _priceController,
+                        _tagController,
+                        _otherController,
+                        context,
+                        l10);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor,
@@ -96,8 +91,51 @@ class ItemProfileScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavBar(),
+      bottomNavigationBar: const BottomNavBar(),
     );
+  }
+
+  void handleSave(
+      TextEditingController nameController,
+      TextEditingController brandController,
+      TextEditingController sizeController,
+      TextEditingController colorController,
+      TextEditingController priceController,
+      TextEditingController tagController,
+      TextEditingController otherController,
+      BuildContext context,
+      AppLocalizations l10) {
+    final item = Item(
+      name: nameController.text,
+      brand: brandController.text,
+      size: sizeController.text,
+      colors: _validateColors(colorController),
+      price: double.tryParse(priceController.text) ?? 0.0,
+      tags: tagController.text
+          .split(Constants.space)
+          .map((e) => Tag(name: e))
+          .toList(),
+      notes: otherController.text,
+      userId: 1,
+      imageLocalPath: '',
+      imageData: Uint8List(0),
+      isFavorite: false,
+      looks: [],
+    );
+    _save(context, item, l10);
+  }
+
+  void _save(BuildContext context, Item item, AppLocalizations l10) {
+    context.read<ItemBloc>().add(
+          SaveItem(item),
+        );
+    //TODO(jtl): add snackbar back
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   SnackBar(
+    //     content: Text(l10.itemProfileScreenNotificationSave),
+    //   ),
+    // );
+    AppNavigator.push(Routes.home);
   }
 
   Column _inputField(
@@ -120,9 +158,23 @@ class ItemProfileScreen extends StatelessWidget {
           width: double.infinity,
           child: TextFormField(
             controller: controller,
+            decoration: InputDecoration(
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.cyan),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.cyan),
+              ),
+            ),
           ),
         ),
       ],
     );
+  }
+
+  List<String> _validateColors(TextEditingController colorController) {
+    final colors = colorController.text.split(Constants.space);
+    if (colors.isEmpty || colors[0] == '') return [];
+    return colors;
   }
 }
