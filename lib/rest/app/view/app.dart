@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wardrobe_frontend/l10n/l10n.dart';
+
+import '../../../config/array_theme.dart';
+import '../../../l10n/l10n.dart';
+import '../../../routes.dart';
 
 class ArrayApp extends StatelessWidget {
   const ArrayApp({super.key});
@@ -8,16 +11,14 @@ class ArrayApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // final l10n = context.l10n;
     return MaterialApp(
-      title: 'Array',
-      theme: ThemeData(
-        appBarTheme: const AppBarTheme(color: Color(0xFF13B9FF)),
-        colorScheme: ColorScheme.fromSwatch(
-          accentColor: const Color(0xFF13B9FF),
-        ),
-      ),
+      theme: ArrayTheme.light,
+      darkTheme: ArrayTheme.dark,
+      color: Colors.white,
+      title: 'Array Digital Wardrobe ArrayApp',
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const Text('Hello World!')
+      navigatorKey: AppNavigator.navigatorKey,
+      onGenerateRoute: AppNavigator.onGenerateRoute,
     );
   }
 }
