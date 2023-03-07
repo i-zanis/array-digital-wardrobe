@@ -1,9 +1,9 @@
 import 'package:Array_App/data/repository/item_repository_impl.dart';
-import 'package:Array_App/domain/item_repository.dart';
+import 'package:Array_App/domain/entity/item/item.dart';
+import 'package:Array_App/domain/exception/user/invalid_user_id_exception.dart';
+import 'package:Array_App/domain/repository/item_repository.dart';
 import 'package:Array_App/domain/use_case/use_case.dart';
 import 'package:Array_App/main_development.dart';
-
-import '../entity/item.dart';
 
 class InitialLoadUseCase extends UseCase<List<Item>, int> {
   InitialLoadUseCase({ItemRepository? itemRepository})
@@ -13,38 +13,15 @@ class InitialLoadUseCase extends UseCase<List<Item>, int> {
   @override
   Future<List<Item>> execute(int userId) async {
     logger.i('$InitialLoadUseCase execute with userId: $userId');
-    if (await validate(userId)) return onSuccess(userId);
-    await onException(InvalidUserIdError(message: 'Invalid userId: $userId'));
+    if (await validate(userId)) return _itemRepository.findAll(userId);
     return [];
   }
 
   @override
-  Future<void> onException(Exception e) async {
-    throw e;
-  }
-
-  @override
-  Future<List<Item>> onSuccess(int userId) async {
-    final items = await _itemRepository.findAll(userId);
-    if (items.length > 50) return items.sublist(0, 50);
-    return items;
-  }
-
-  @override
   Future<bool> validate(int userId) async {
-    if (userId == null) {
-      throw InvalidUserIdError(message: 'Invalid userId: $userId');
+    if (userId < 0) {
+      throw InvalidUserIdException(message: "User id can't be negative");
     }
     return true;
   }
-}
-
-class UserException implements Exception {
-  UserException({required this.message});
-
-  final String message;
-}
-
-class InvalidUserIdError extends UserException {
-  InvalidUserIdError({required super.message});
 }
