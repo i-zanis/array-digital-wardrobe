@@ -1,13 +1,15 @@
+import 'dart:async';
+
+import 'package:Array_App/bloc/item/item_state.dart';
+import 'package:Array_App/domain/entity/item/item.dart';
+import 'package:Array_App/domain/use_case/initial_load_use_case.dart';
+import 'package:Array_App/domain/use_case/item/add_item_use_case.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 
-import '../domain/add_item_use_case.dart';
-import '../domain/delete_item_use_case.dart';
-import '../domain/entity/item.dart';
-import '../domain/initial_load_use_case.dart';
-import '../domain/update_item_use_case.dart';
-import 'item_state.dart';
+import '../../domain/use_case/item/delete_item_use_case.dart';
+import '../../domain/use_case/item/update_item_use_case.dart';
 
 class ItemBloc extends Bloc<ItemEvent, ItemState> {
   ItemBloc(
@@ -30,6 +32,10 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
     );
     on<UpdateItem>(
       _onUpdateItem,
+      transformer: (events, mapper) => events.switchMap(mapper),
+    );
+    on<UpdateItemToAdd>(
+      onUpdateItemToAdd,
       transformer: (events, mapper) => events.switchMap(mapper),
     );
   }
@@ -79,8 +85,22 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
     emit(ItemLoading(items: state.items));
     try {
       final item = await _updateItemUseCase.execute(event.item);
-      emit(ItemLoaded(
-          items: state.items.map((i) => i.id == item.id ? item : i).toList()));
+      emit(
+        ItemLoaded(
+          items: state.items.map((i) => i.id == item.id ? item : i).toList(),
+        ),
+      );
+    } on Exception catch (e) {
+      emit(ItemLoadFailure(e));
+    }
+  }
+
+  FutureOr<void> onUpdateItemToAdd(
+    UpdateItemToAdd event,
+    Emitter<ItemState> emit,
+  ) {
+    try {
+      emit(ItemLoaded(items: state.items, itemToAdd: event.newItem));
     } on Exception catch (e) {
       emit(ItemLoadFailure(e));
     }
@@ -92,6 +112,15 @@ abstract class ItemEvent extends Equatable {
 
   @override
   List<Object> get props => [];
+}
+
+class UpdateItemToAdd extends ItemEvent {
+  const UpdateItemToAdd(this.newItem);
+
+  final Item newItem;
+
+  @override
+  List<Object> get props => [newItem];
 }
 
 class LoadItem extends ItemEvent {
@@ -147,5 +176,3 @@ class FindItem extends ItemEvent {
   @override
   List<Object> get props => [query];
 }
-
-// enum ItemActions { add, delete, like, save }
