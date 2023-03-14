@@ -19,6 +19,7 @@ class ForecastWeatherData {
       });
     }
   }
+
   late double lat;
   late double lon;
   late String timezone;
@@ -118,6 +119,7 @@ class Daily {
     pop = 0.0;
     uvi = 0.0;
   }
+
   late int dt;
   late int sunrise;
   late int sunset;
@@ -187,6 +189,7 @@ class Temp {
     eve = 0.0;
     morn = 0.0;
   }
+
   late double day;
   late double min;
   late double max;
@@ -195,7 +198,7 @@ class Temp {
   late double morn;
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
+    final data = <String, dynamic>{};
     data['day'] = day;
     data['min'] = min;
     data['max'] = max;
@@ -220,13 +223,14 @@ class FeelsLike {
     eve = json['eve'] as double;
     morn = json['morn'] as double;
   }
+
   late double day;
   late double night;
   late double eve;
   late double morn;
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
+    final data = <String, dynamic>{};
     data['day'] = day;
     data['night'] = night;
     data['eve'] = eve;
@@ -249,13 +253,14 @@ class Weather {
     description = json['description'] as String;
     icon = json['icon'] as String;
   }
+
   late int id;
   late String main;
   late String description;
   late String icon;
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
+    final data = <String, dynamic>{};
     data['id'] = id;
     data['main'] = main;
     data['description'] = description;
