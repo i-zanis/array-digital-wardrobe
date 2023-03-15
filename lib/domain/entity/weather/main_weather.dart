@@ -9,13 +9,12 @@ class Main {
   });
 
   Main.fromJson(Map<String, dynamic> json) {
-    // "as double" doesn't always therefore * 1.0 is needed
-    temp = (json['temp'] ?? 0.0) * 1.0 as double;
-    feelsLike = (json['feels_like'] ?? 0.0) as double;
-    tempMin = (json['temp_min'] ?? 0.0) * 1.0 as double;
-    tempMax = (json['temp_max'] ?? 0.0) * 1.0 as double;
-    pressure = (json['pressure'] ?? 0) as int;
-    humidity = (json['humidity'] ?? 0) as int;
+    temp = parseToDoubleOrDefault(json['temp']);
+    feelsLike = parseToDoubleOrDefault(json['feels_like']);
+    tempMin = parseToDoubleOrDefault(json['temp_min']);
+    tempMax = parseToDoubleOrDefault(json['temp_max']);
+    pressure = json['pressure'] as int? ?? 0;
+    humidity = json['humidity'] as int? ?? 0;
   }
 
   late double temp;
