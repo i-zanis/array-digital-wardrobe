@@ -4,12 +4,12 @@ import 'package:Array_App/bloc/item/item_state.dart';
 import 'package:Array_App/domain/entity/item/item.dart';
 import 'package:Array_App/domain/use_case/initial_load_use_case.dart';
 import 'package:Array_App/domain/use_case/item/add_item_use_case.dart';
+import 'package:Array_App/domain/use_case/item/delete_item_use_case.dart';
+import 'package:Array_App/domain/use_case/item/update_item_use_case.dart';
+import 'package:Array_App/main_development.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
-
-import '../../domain/use_case/item/delete_item_use_case.dart';
-import '../../domain/use_case/item/update_item_use_case.dart';
 
 class ItemBloc extends Bloc<ItemEvent, ItemState> {
   ItemBloc(
@@ -99,8 +99,11 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
     UpdateItemToAdd event,
     Emitter<ItemState> emit,
   ) {
+    emit(ItemLoading(items: state.items));
     try {
-      emit(ItemLoaded(items: state.items, itemToAdd: event.newItem));
+      logger
+          .d('onUpdateItemToAdd: ${event.itemToAdd.imageData![0].toString()}');
+      emit(ItemLoaded(items: state.items, itemToAdd: event.itemToAdd));
     } on Exception catch (e) {
       emit(ItemLoadFailure(e));
     }
@@ -115,12 +118,12 @@ abstract class ItemEvent extends Equatable {
 }
 
 class UpdateItemToAdd extends ItemEvent {
-  const UpdateItemToAdd(this.newItem);
+  UpdateItemToAdd(this.itemToAdd) {}
 
-  final Item newItem;
+  final Item itemToAdd;
 
   @override
-  List<Object> get props => [newItem];
+  List<Object> get props => [itemToAdd];
 }
 
 class LoadItem extends ItemEvent {
