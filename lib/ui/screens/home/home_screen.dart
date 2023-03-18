@@ -1,5 +1,6 @@
 import 'package:Array_App/bloc/weather/weather_state.dart';
 import 'package:Array_App/config/style_config.dart';
+import 'package:Array_App/domain/entity/item/item.dart';
 import 'package:Array_App/l10n/l10n.dart';
 import 'package:Array_App/ui/widget/indicator/linear_progress_indicator.dart';
 import 'package:Array_App/ui/widget/weather/weather_functions.dart';
@@ -12,6 +13,7 @@ import '../../../bloc/item/item_state.dart';
 import '../../../bloc/weather/weather_bloc.dart';
 import '../../../main_development.dart';
 import '../../../rest/util/util_functions.dart';
+import '../../../routes.dart';
 import '../../widget/bottom_nav_bar.dart';
 import '../../widget/weather/weather_icon.dart';
 
@@ -61,35 +63,169 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               _dataRowWidget(),
               const SizedBox(height: 40),
-              Container(
-                width: width,
-                height: height * 0.5,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Colors.grey[300],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Last item',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                        ],
-                      ),
-                      _latestItemWidget(height),
-                    ],
-                  ),
-                ),
-              ),
+              _latestItemWidget(width, height),
             ],
           ),
         ),
       ),
       bottomNavigationBar: const CustomBottomNavBar(),
+    );
+  }
+
+  Widget _latestItemWidget(double width, double height) {
+    final l10n = context.l10n;
+    final titleColor = Theme.of(context).colorScheme.onSurface;
+    final subtitleColor = Theme.of(context).colorScheme.onSurface;
+    final titleStyle = Theme.of(context).textTheme.headlineSmall?.apply(
+          color: titleColor,
+        );
+    final subtitleStyle = Theme.of(context).textTheme.titleSmall?.apply(
+          color: subtitleColor,
+        );
+    final textStyleTop = Theme.of(context).textTheme.bodyLarge?.apply(
+          color: titleColor,
+        );
+    final textStyleBottom = Theme.of(context).textTheme.titleMedium?.apply(
+          color: subtitleColor,
+        );
+    Widget latestItemMain(List<Item> last2Items) {
+      return SizedBox(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 4,
+              shrinkWrap: true,
+              children: List.generate(
+                last2Items.length,
+                (index) {
+                  var brand = last2Items[index].brand ?? '';
+                  if (brand.isEmpty) brand = 'No brand';
+                  var name = last2Items[index].name ?? '';
+                  if (name.isEmpty) name = 'No name';
+                  return Column(
+                    children: [
+                      if (last2Items[index].imageData != null)
+                        Image(
+                          height: height * 0.25,
+                          image: MemoryImage(
+                            last2Items[index].imageData!,
+                          ),
+                          fit: BoxFit.fill,
+                        )
+                      else
+                        Container(),
+                      Text(brand, style: textStyleTop),
+                      Text(
+                        name,
+                        style: textStyleBottom,
+                      )
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: width,
+      height: height * 0.5,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.latestItemTitle,
+                      style: titleStyle,
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.favorite_outline,
+                          color: titleColor,
+                        ),
+                        Text(
+                          l10n.seeFavouriteItem,
+                          style: subtitleStyle,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                //todo(jtl): add favourite screen and change route
+                FloatingActionButton(
+                  onPressed: () => AppNavigator.push(AppRoute.itemProfile),
+                  child: Icon(Icons.add),
+                )
+              ],
+            ),
+            const SizedBox(height: StyleConfig.defaultMargin),
+            BlocBuilder<ItemBloc, ItemState>(
+              builder: (context, state) {
+                if (state is ItemLoading) {
+                  return const CircularProgressIndicator();
+                } else if (state is ItemLoaded) {
+                  final last2Items = state.items.reversed.take(2).toList();
+                  return latestItemMain(last2Items);
+                } else if (state is ItemError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.itemLoadError),
+                    ),
+                  );
+                  return Column(
+                    children: [
+                      Text('Items ${state.items.toString()}'),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.amber,
+                          backgroundColor: Colors.red,
+                        ),
+                        onPressed: () {
+                          logger.i("State:", state);
+                          BlocProvider.of<ItemBloc>(context).add(
+                            const LoadItem(),
+                          );
+                        },
+                        child: const Text('Load Failure'),
+                      )
+                    ],
+                  );
+                }
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text("This is else"),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.green, // foreground
+                      ),
+                      onPressed: () {
+                        BlocProvider.of<ItemBloc>(context).add(
+                          const LoadItem(),
+                        );
+                      },
+                      child: const Text("This is else"),
+                    )
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -168,155 +304,69 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Padding _dataRowWidget() {
+    final l10n = context.l10n;
+    final primaryColor = Theme.of(context).colorScheme.tertiary;
+    final secondaryColor = Theme.of(context).colorScheme.onSurface;
+    final textStyleTop = Theme.of(context)
+        .textTheme
+        .headlineLarge
+        ?.copyWith(color: primaryColor);
+    final textStyleBottom = Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: secondaryColor,
+        );
     return Padding(
       padding: const EdgeInsets.all(StyleConfig.defaultPadding),
       child: BlocBuilder<ItemBloc, ItemState>(
         builder: (context, state) {
           if (state is ItemLoaded) {
+            final itemCount = state.items.length;
+            // count the total price of all items
+            double totalValue = state.items
+                .where((item) => item.price != null)
+                .map((item) => item.price ?? 0.0)
+                .fold(0, (total, price) => total + price);
+            final looksCount = state.items
+                .where((item) => item.looks != null)
+                .expand((item) => item.looks!)
+                .toSet()
+                .length;
+            final locale = Localizations.localeOf(context).toString();
+            final format =
+                NumberFormat.simpleCurrency(locale: locale.toString());
+            final formatter = NumberFormat.currency(
+              locale: locale,
+              // TODO(jtl): need to fix automatic currency input without l13n package, can't separate US/UK
+              // symbol: format.currencySymbol,
+              symbol: l10n.currencySymbol,
+              decimalDigits: 1,
+            ).format(totalValue);
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Column(
                   children: [
-                    Text('${state.items.length}',
-                        style: Theme.of(context).textTheme.titleLarge),
-                    Text('items',
-                        style: Theme.of(context).textTheme.labelSmall),
+                    Text('$itemCount', style: textStyleTop),
+                    Text(l10n.homeScreenLabelItems, style: textStyleBottom),
                   ],
                 ),
                 Column(
                   children: [
-                    Text('${state.items.length}',
-                        style: Theme.of(context).textTheme.titleLarge),
-                    Text('items',
-                        style: Theme.of(context).textTheme.labelSmall),
+                    Text(formatter, style: textStyleTop),
+                    Text(l10n.homeScreenLabelValue, style: textStyleBottom),
                   ],
                 ),
                 Column(
                   children: [
-                    Text('${state.items.length}',
-                        style: Theme.of(context).textTheme.titleLarge),
-                    Text('items',
-                        style: Theme.of(context).textTheme.labelSmall),
+                    Text('$looksCount', style: textStyleTop),
+                    Text(l10n.homeScreenLabelLooks, style: textStyleBottom),
                   ],
-                ),
+                )
               ],
             );
           }
           return const SizedBox.shrink();
         },
       ),
-    );
-  }
-
-  BlocBuilder<ItemBloc, ItemState> _latestItemWidget(double height) {
-    return BlocBuilder<ItemBloc, ItemState>(
-      builder: (context, state) {
-        if (state is ItemLoading) {
-          return const CircularProgressIndicator();
-        } else if (state is ItemLoaded) {
-          return SizedBox(
-            height: state.items.isNotEmpty ? height * 0.3 : 0,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  children: List.generate(
-                    state.items.length,
-                    (index) {
-                      return Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          color: Colors.white,
-                          child: Column(
-                            children: [
-                              if (state.items[index].imageData != null)
-                                Image(
-                                  image: MemoryImage(
-                                    state.items[index].imageData!,
-                                  ),
-                                ),
-                              const Spacer(),
-                              Text('Item ${index + 1}'),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                // Text('Items ${state.items.length.toString()}'),
-                // for (var item in state.items)
-                //   Text(
-                //     item.name ?? 'No name',
-                //     style: const TextStyle(fontSize: 20),
-                //   ),
-                // ElevatedButton(
-                //   style: ElevatedButton.styleFrom(
-                //     foregroundColor: Colors.white,
-                //     backgroundColor: Colors.green, // foreground
-                //   ),
-                //   onPressed: () {
-                //     BlocProvider.of<ItemBloc>(context).add(
-                //       const LoadItem(),
-                //     );
-                //   },
-                //   child: const Text('Load Success'),
-                // )
-              ],
-            ),
-          );
-        } else if (state is ItemError) {
-          return Column(
-            children: [
-              Text('Items ${state.items.toString()}'),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.amber,
-                  backgroundColor: Colors.red,
-                ),
-                onPressed: () {
-                  logger.i("State:", state);
-                  BlocProvider.of<ItemBloc>(context).add(
-                    const LoadItem(),
-                  );
-                },
-                child: const Text('Load Failure'),
-              )
-            ],
-          );
-        } else {
-          // logger
-          //   ..i("State: $state")
-          //   ..i('Items: ${state?.items} '
-          //       '\nLength: ${state.items.length}'
-          // '\nId: ${state.items[0]?.id} Name: ${state.items[0].name ?? ''}'
-          // '\nSelectedItem: ${state.selectedItem}'
-          // '\nState Error: ${state.exception}');
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text("This is else"),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.green, // foreground
-                ),
-                onPressed: () {
-                  BlocProvider.of<ItemBloc>(context).add(
-                    const LoadItem(),
-                  );
-                },
-                child: const Text("This is else"),
-              )
-            ],
-          );
-        }
-      },
     );
   }
 
@@ -391,7 +441,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Text _getDateTemp(
-      WeatherLoaded state, BuildContext context, TextStyle? style) {
+    WeatherLoaded state,
+    BuildContext context,
+    TextStyle? style,
+  ) {
     return Text(_getMinMaxTemperature(state), style: style);
   }
 
