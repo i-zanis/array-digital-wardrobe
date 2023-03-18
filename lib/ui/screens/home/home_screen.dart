@@ -36,11 +36,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10 = context.l10n;
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    final date = DateTime.now();
-    final formattedDate = DateFormat('EE, MMM d').format(date);
+    const BorderRadius borderRadius = BorderRadius.all(Radius.circular(8.0));
+    final surface = Theme.of(context).colorScheme.surface;
+    Color shadowColor = Theme.of(context).colorScheme.shadow;
+    Color surfaceTint = Theme.of(context).colorScheme.primary;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -50,63 +51,15 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.all(StyleConfig.defaultMargin),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(StyleConfig.defaultPadding),
-                child: Row(
-                  children: [
-                    Text(
-                      l10.homeScreenGreeting,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(width: StyleConfig.defaultMargin),
-                    Text(
-                      'Emily!',
-                      style: Theme.of(context).textTheme.displaySmall,
-                    ),
-                    Spacer(),
-                    Container(
-                      width: 70,
-                      height: 70,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black,
-                      ),
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 35,
-                      ),
-                    ),
-                  ],
-                ),
+              _greetingWidget(),
+              _weatherWidget(),
+              _bodyMeasurementWidget(
+                borderRadius,
+                shadowColor,
+                surfaceTint,
+                surface,
               ),
-              _weatherWidget(formattedDate, l10),
-              Container(
-                width: width,
-                height: 100,
-                child: Card(
-                  margin: const EdgeInsets.all(StyleConfig.defaultMargin),
-                  color: Theme.of(context).colorScheme.primary,
-                  child: Padding(
-                    padding: const EdgeInsets.all(StyleConfig.defaultPadding),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10.bodyMeasurement,
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        Spacer(),
-                        Icon(Icons.arrow_forward_ios),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(StyleConfig.defaultPadding),
-                child: _dataRow(),
-              ),
+              _dataRowWidget(),
               const SizedBox(height: 40),
               Container(
                 width: width,
@@ -136,43 +89,123 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomNavBar(),
+      bottomNavigationBar: const CustomBottomNavBar(),
     );
   }
 
-  BlocBuilder<ItemBloc, ItemState> _dataRow() {
-    return BlocBuilder<ItemBloc, ItemState>(
-      builder: (context, state) {
-        if (state is ItemLoaded) {
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Column(
-                children: [
-                  Text('${state.items.length}',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  Text('items', style: Theme.of(context).textTheme.labelSmall),
-                ],
-              ),
-              Column(
-                children: [
-                  Text('${state.items.length}',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  Text('items', style: Theme.of(context).textTheme.labelSmall),
-                ],
-              ),
-              Column(
-                children: [
-                  Text('${state.items.length}',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  Text('items', style: Theme.of(context).textTheme.labelSmall),
-                ],
-              ),
-            ],
-          );
-        }
-        return const SizedBox.shrink();
-      },
+  Padding _bodyMeasurementWidget(
+    BorderRadius borderRadius,
+    Color shadowColor,
+    Color surfaceTint,
+    Color surface,
+  ) {
+    final widgetPrimaryColor = Theme.of(context).colorScheme.onPrimaryContainer;
+    final textStyle = Theme.of(context).textTheme.headlineSmall?.copyWith(
+          color: widgetPrimaryColor,
+        );
+    return Padding(
+      padding: const EdgeInsets.all(StyleConfig.defaultPadding),
+      child: Material(
+        borderRadius: borderRadius,
+        shadowColor: shadowColor,
+        surfaceTintColor: surfaceTint,
+        color: surface,
+        type: MaterialType.card,
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(StyleConfig.defaultPadding),
+          child: SizedBox(
+            child: Row(
+              children: [
+                Text(
+                  context.l10n.bodyMeasurement,
+                  style: textStyle,
+                ),
+                const Spacer(),
+                Icon(Icons.arrow_forward_ios, color: widgetPrimaryColor),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Padding _greetingWidget() {
+    final l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.all(StyleConfig.defaultPadding),
+      child: Row(
+        children: [
+          Text(
+            l10n.homeScreenGreeting,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(width: StyleConfig.defaultMargin),
+          Text(
+            // TODO(jtl): add name user name from bloc
+            'Emily!',
+            style: Theme.of(context).textTheme.displaySmall?.apply(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+          const Spacer(),
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Theme.of(context).colorScheme.onSecondaryContainer),
+            child: const Icon(
+              Icons.person,
+              color: Colors.white,
+              size: 35,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Padding _dataRowWidget() {
+    return Padding(
+      padding: const EdgeInsets.all(StyleConfig.defaultPadding),
+      child: BlocBuilder<ItemBloc, ItemState>(
+        builder: (context, state) {
+          if (state is ItemLoaded) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  children: [
+                    Text('${state.items.length}',
+                        style: Theme.of(context).textTheme.titleLarge),
+                    Text('items',
+                        style: Theme.of(context).textTheme.labelSmall),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text('${state.items.length}',
+                        style: Theme.of(context).textTheme.titleLarge),
+                    Text('items',
+                        style: Theme.of(context).textTheme.labelSmall),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text('${state.items.length}',
+                        style: Theme.of(context).textTheme.titleLarge),
+                    Text('items',
+                        style: Theme.of(context).textTheme.labelSmall),
+                  ],
+                ),
+              ],
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
     );
   }
 
@@ -287,14 +320,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Card _weatherWidget(
-    String formattedDate,
-    AppLocalizations l10,
-  ) {
+  Card _weatherWidget() {
+    final l10 = context.l10n;
+    final date = DateTime.now();
+    final formattedDate = DateFormat('EEEE, MMM d', 'en_US').format(date);
+    final widgetPrimaryColor = Theme.of(context).colorScheme.onPrimaryContainer;
+    final textStyleFirstRow = Theme.of(context)
+        .textTheme
+        .headlineSmall
+        ?.apply(color: widgetPrimaryColor);
+    final textStyleSecondRow = Theme.of(context)
+        .textTheme
+        .labelSmall
+        ?.apply(color: widgetPrimaryColor);
     return Card(
       margin: const EdgeInsets.all(StyleConfig.defaultMargin),
-      color: Theme.of(context).colorScheme.primary,
-      elevation: StyleConfig.defaultElevation,
       child: BlocBuilder<WeatherBloc, WeatherState>(
         builder: (context, state) {
           if (state is WeatherLoading) {
@@ -306,24 +346,28 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Row(
                     children: [
-                      _getWeatherIcon(state),
+                      _getWeatherIcon(state, widgetPrimaryColor),
                       const SizedBox(width: StyleConfig.defaultPadding),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             formattedDate,
-                            style: Theme.of(context).textTheme.headlineSmall,
+                            style: textStyleFirstRow,
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _getDateTemp(state, context),
+                              _getDateTemp(state, context, textStyleSecondRow),
                               const SizedBox(width: 8),
-                              Text('${state.data?.name}',
-                                  style:
-                                      Theme.of(context).textTheme.labelLarge),
-                              const Icon(Icons.location_on),
+                              Text(
+                                '${state.data?.name}',
+                                style: textStyleSecondRow,
+                              ),
+                              Icon(
+                                Icons.location_on,
+                                color: widgetPrimaryColor,
+                              ),
                             ],
                           ),
                         ],
@@ -336,7 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
           } else if (state is WeatherError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(l10.itemProfileScreenNotificationSave),
+                content: Text(l10.homeScreenWeatherError),
               ),
             );
           }
@@ -346,11 +390,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Text _getDateTemp(WeatherLoaded state, BuildContext context) {
-    return Text(
-      _getMinMaxTemperature(state),
-      style: Theme.of(context).textTheme.labelLarge,
-    );
+  Text _getDateTemp(
+      WeatherLoaded state, BuildContext context, TextStyle? style) {
+    return Text(_getMinMaxTemperature(state), style: style);
   }
 
   String _getMinMaxTemperature(WeatherLoaded state) {
@@ -361,9 +403,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return '$minTempStr°C | $maxTempStr°C';
   }
 
-  Icon _getWeatherIcon(WeatherLoaded state) {
+  Icon _getWeatherIcon(WeatherLoaded state, Color? color) {
     return Icon(
       size: 40,
+      color: color,
       WeatherIcon.mapToIcon(
         getWeatherConditionString(
           state.data?.weather?.first.id ?? 0,
