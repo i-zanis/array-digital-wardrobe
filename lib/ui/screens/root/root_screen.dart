@@ -1,8 +1,9 @@
-import 'package:Array_App/ui/screens/home/home_screen.dart';
-import 'package:Array_App/ui/screens/item_profile/image_upload_screen.dart';
-import 'package:Array_App/ui/screens/item_profile/item_profile_screen.dart';
-import 'package:Array_App/ui/screens/look_book/look_book_screen.dart';
+import 'package:Array_App/routes.dart';
 import 'package:flutter/material.dart';
+
+import '../home/home_screen.dart';
+import '../item_profile/item_profile_screen.dart';
+import '../look_book/look_book_screen.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
@@ -13,12 +14,33 @@ class RootScreen extends StatefulWidget {
 
 class _RootScreenState extends State<RootScreen> {
   int currentScreenIndex = 0;
+  final List<Widget> screens = const [
+    HomeScreen(),
+    ItemProfileScreen(),
+    LookBookScreen(),
+  ];
+
+  // Fallback because CameraScreen appears on top of everything in the stack
+  bool isCameraButtonPressed(int index) {
+    if (index == 3) {
+      AppNavigator.push<AppRoute>(AppRoute.camera);
+      return true;
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      body: SafeArea(
+        child: IndexedStack(
+          index: currentScreenIndex,
+          children: screens,
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
+          if (isCameraButtonPressed(index)) return;
           setState(() {
             currentScreenIndex = index;
           });
@@ -27,25 +49,26 @@ class _RootScreenState extends State<RootScreen> {
         destinations: const <Widget>[
           NavigationDestination(
             icon: Icon(Icons.explore),
-            label: 'Explore',
+            label: 'Home',
           ),
           NavigationDestination(
             icon: Icon(Icons.commute),
-            label: 'Commute',
+            label: 'Look Book',
           ),
           NavigationDestination(
             selectedIcon: Icon(Icons.bookmark),
             icon: Icon(Icons.bookmark_border),
-            label: 'Saved',
+            label: 'Wardrobe',
+          ),
+          NavigationDestination(
+            selectedIcon: Icon(Icons.bookmark),
+            icon: Icon(
+              Icons.bookmark_border,
+            ),
+            label: 'Add',
           ),
         ],
       ),
-      body: [
-        const HomeScreen(),
-        const LookBookScreen(),
-        const CameraScreen(),
-        const ItemProfileScreen()
-      ][currentScreenIndex],
     );
   }
 }
