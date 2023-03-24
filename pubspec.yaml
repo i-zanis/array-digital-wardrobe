@@ -1,5 +1,5 @@
-name: wardrobe_frontend
-description: A Digital Wardrobe
+name: Array_App
+description: Array A Digital Wardrobe Application
 version: 1.0.0+1
 publish_to: none
 
@@ -18,14 +18,25 @@ dependencies:
   lints: ^2.0.1  # //TODO check for removal
   flutter_lints: ^2.0.1 # //TODO check for removal
   shared_preferences: ^2.0.6
-  image_picker: ^0.8.6+1
   fluttertoast: ^8.1.2
-  dio: ^4.0.6
+  dio: ^5.0.1
   json_serializable: ^6.6.1
   stream_transform: ^2.1.0
   logger: ^1.0.0
   equatable: ^2.0.5
   json_annotation: ^4.8.0
+  flutter_dotenv: ^5.0.2
+  index_generator: ^3.3.3
+  http: ^0.13.5
+  camera_platform_interface: ^2.4.1
+  camera: ^0.10.3+2
+  cupertino_icons: ^1.0.2
+  path_provider: ^2.0.13
+  url_launcher: ^6.1.10
+  open_file: ^3.2.1
+  remove_background: ^0.0.1
+  image_picker: ^0.8.6+4
+  gallery_saver: ^2.3.2
 
 dev_dependencies:
   bloc_test: ^9.1.0
@@ -33,6 +44,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   mocktail: ^0.3.0
+
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/images/
+    - .env
