@@ -1,8 +1,8 @@
 import 'package:Array_App/config/style_config.dart';
 import 'package:flutter/material.dart';
 
-class ActionButton extends StatelessWidget {
-  const ActionButton({
+class CustomActionButton extends StatelessWidget {
+  const CustomActionButton({
     super.key,
     required this.onPressed,
     required this.icon,
