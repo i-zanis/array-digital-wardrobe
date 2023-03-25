@@ -2,8 +2,6 @@ import 'package:Array_App/bloc/weather/weather_state.dart';
 import 'package:Array_App/config/style_config.dart';
 import 'package:Array_App/domain/entity/item/item.dart';
 import 'package:Array_App/l10n/l10n.dart';
-import 'package:Array_App/ui/widget/indicator/linear_progress_indicator.dart';
-import 'package:Array_App/ui/widget/weather/weather_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -11,10 +9,12 @@ import 'package:intl/intl.dart';
 import '../../../bloc/item/item_bloc.dart';
 import '../../../bloc/item/item_state.dart';
 import '../../../bloc/weather/weather_bloc.dart';
-import '../../../main_development.dart';
+import '../../../core/route/app_navigator.dart';
+import '../../../core/route/app_route.dart';
 import '../../../rest/util/util_functions.dart';
-import '../../../routes.dart';
-import '../../widget/bottom_nav_bar.dart';
+import '../../widget/indicator/linear_progress_indicator.dart';
+import '../../widget/sized_box_x8.dart';
+import '../../widget/weather/weather_functions.dart';
 import '../../widget/weather/weather_icon.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,28 +26,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   @override
-  void initState() {
-    super.initState();
-    // insideWeatherData();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    const BorderRadius borderRadius = BorderRadius.all(Radius.circular(8.0));
+    const borderRadius = BorderRadius.all(Radius.circular(8.0));
     final surface = Theme.of(context).colorScheme.surface;
-    Color shadowColor = Theme.of(context).colorScheme.shadow;
-    Color surfaceTint = Theme.of(context).colorScheme.primary;
+    final shadowColor = Theme.of(context).colorScheme.shadow;
+    final surfaceTint = Theme.of(context).colorScheme.primary;
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(StyleConfig.defaultMargin),
@@ -62,17 +48,148 @@ class _HomeScreenState extends State<HomeScreen> {
                 surface,
               ),
               _dataRowWidget(),
-              const SizedBox(height: 40),
-              _latestItemWidget(width, height),
+              const SizedBox8(),
+              _latestItemWidget(),
+              SizedBox(height: height * 0.1),
+              _myLatestLook(),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: const CustomBottomNavBar(),
     );
   }
 
-  Widget _latestItemWidget(double width, double height) {
+  Widget _latestItemWidget() {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+    final l10n = context.l10n;
+    final titleColor = Theme.of(context).colorScheme.onSurface;
+    final subtitleColor = Theme.of(context).colorScheme.onSurface;
+    final titleStyle = Theme.of(context).textTheme.headlineSmall?.apply(
+          color: titleColor,
+        );
+    final subtitleStyle = Theme.of(context).textTheme.titleSmall?.apply(
+          color: subtitleColor,
+        );
+    final textStyleTop = Theme.of(context).textTheme.bodyLarge?.apply(
+          color: titleColor,
+        );
+    final textStyleBottom = Theme.of(context).textTheme.titleMedium?.apply(
+          color: subtitleColor,
+        );
+    Widget latestItemMain(List<Item> last2Items) {
+      return SizedBox(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 4,
+              shrinkWrap: true,
+              children: List.generate(
+                last2Items.length > 2 ? 2 : last2Items.length as int,
+                (index) {
+                  var brand = last2Items[index].brand ?? '';
+                  if (brand.isEmpty) brand = 'No brand';
+                  var name = last2Items[index].name ?? '';
+                  if (name.isEmpty) name = 'No name';
+                  return Column(
+                    children: [
+                      if (last2Items[index].imageData != null)
+                        Image(
+                          width: double.infinity,
+                          height: height * 0.25,
+                          image: MemoryImage(
+                            last2Items[index].imageData!,
+                          ),
+                          fit: BoxFit.fill,
+                        )
+                      else
+                        Container(),
+                      Text(brand, style: textStyleTop),
+                      Text(
+                        name,
+                        style: textStyleBottom,
+                      )
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: width,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.latestItemTitle,
+                      style: titleStyle,
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.favorite_outline,
+                          color: titleColor,
+                        ),
+                        Text(
+                          l10n.seeFavouriteItem,
+                          style: subtitleStyle,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                //todo(jtl): add favourite screen and change route
+                FloatingActionButton(
+                  heroTag: 'itemProfile',
+                  onPressed: () => AppNavigator.push<void>(
+                    AppRoute.itemProfile,
+                  ),
+                  //   //   AppNavigator.push<void>(
+                  //   // AppRoute.itemProfile,
+                  // ),
+                  child: const Icon(Icons.add),
+                )
+              ],
+            ),
+            const SizedBox(height: StyleConfig.defaultMargin),
+            BlocBuilder<ItemBloc, ItemState>(
+              builder: (context, state) {
+                final last2Items = state.items.reversed.take(2).toList();
+                if (state is ItemLoading) {
+                  return const CustomLinearProgressIndicator();
+                } else if (state is ItemLoaded) {
+                  return latestItemMain(last2Items);
+                } else if (state is ItemError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.itemLoadError)),
+                  );
+                  return latestItemMain(last2Items);
+                }
+                return latestItemMain(last2Items);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _myLatestLook() {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     final l10n = context.l10n;
     final titleColor = Theme.of(context).colorScheme.onSurface;
     final subtitleColor = Theme.of(context).colorScheme.onSurface;
@@ -108,6 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       if (last2Items[index].imageData != null)
                         Image(
+                          width: double.infinity,
                           height: height * 0.25,
                           image: MemoryImage(
                             last2Items[index].imageData!,
@@ -133,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return SizedBox(
       width: width,
-      height: height * 0.5,
+      // height: height * 0.5,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -144,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.latestItemTitle,
+                      l10n.latestLookTitle,
                       style: titleStyle,
                     ),
                     Row(
@@ -154,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: titleColor,
                         ),
                         Text(
-                          l10n.seeFavouriteItem,
+                          l10n.seeFavouriteLook,
                           style: subtitleStyle,
                         ),
                       ],
@@ -164,63 +282,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Spacer(),
                 //todo(jtl): add favourite screen and change route
                 FloatingActionButton(
-                  onPressed: () => AppNavigator.push(AppRoute.itemProfile),
-                  child: Icon(Icons.add),
+                  heroTag: 'looksScreen',
+                  onPressed: () => AppNavigator.push<dynamic>(
+                    AppRoute.itemProfile,
+                  ),
+                  child: const Icon(Icons.add),
                 )
               ],
             ),
             const SizedBox(height: StyleConfig.defaultMargin),
             BlocBuilder<ItemBloc, ItemState>(
               builder: (context, state) {
+                final last2Items = state.items.reversed.take(2).toList();
                 if (state is ItemLoading) {
-                  return const CircularProgressIndicator();
+                  return const CustomLinearProgressIndicator();
                 } else if (state is ItemLoaded) {
-                  final last2Items = state.items.reversed.take(2).toList();
                   return latestItemMain(last2Items);
                 } else if (state is ItemError) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.itemLoadError),
-                    ),
+                    SnackBar(content: Text(l10n.itemLoadError)),
                   );
-                  return Column(
-                    children: [
-                      Text('Items ${state.items.toString()}'),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.amber,
-                          backgroundColor: Colors.red,
-                        ),
-                        onPressed: () {
-                          logger.i("State:", state);
-                          BlocProvider.of<ItemBloc>(context).add(
-                            const LoadItem(),
-                          );
-                        },
-                        child: const Text('Load Failure'),
-                      )
-                    ],
-                  );
+                  return latestItemMain(last2Items);
                 }
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text("This is else"),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.green, // foreground
-                      ),
-                      onPressed: () {
-                        BlocProvider.of<ItemBloc>(context).add(
-                          const LoadItem(),
-                        );
-                      },
-                      child: const Text("This is else"),
-                    )
-                  ],
-                );
+                return latestItemMain(last2Items);
               },
             ),
           ],
@@ -331,8 +415,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 .toSet()
                 .length;
             final locale = Localizations.localeOf(context).toString();
-            final format =
-                NumberFormat.simpleCurrency(locale: locale.toString());
+            // TODO(jtl): need to fix automatic currency input without l13n package, can't separate US/UK
+            // final format =
+            //     NumberFormat.simpleCurrency(locale: locale.toString());
             final formatter = NumberFormat.currency(
               locale: locale,
               // TODO(jtl): need to fix automatic currency input without l13n package, can't separate US/UK
@@ -388,7 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: BlocBuilder<WeatherBloc, WeatherState>(
         builder: (context, state) {
           if (state is WeatherLoading) {
-            return CustomLinearProgressIndicator();
+            return const CustomLinearProgressIndicator();
           } else if (state is WeatherLoaded) {
             return Padding(
               padding: const EdgeInsets.all(StyleConfig.defaultMargin),
