@@ -1,10 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:Array_App/domain/entity/base_entity.dart';
+import 'package:Array_App/domain/entity/item/look.dart';
 import 'package:Array_App/domain/entity/item/tag.dart';
 import 'package:json_annotation/json_annotation.dart';
-
-import 'look.dart';
 
 @JsonSerializable()
 class Item extends BaseEntity {
@@ -40,19 +39,23 @@ class Item extends BaseEntity {
         brand: json['brand'] as String?,
         category: json['category'] as String?,
         looks: (json['looks'] as List<dynamic>?)
-            ?.map((e) => Look.fromJson(e))
+            ?.map((e) => Look.fromJson(e as Map<String, dynamic>))
             .toList(),
         isFavorite: json['isFavorite'] as bool?,
         price: (json['price'] as num?)?.toDouble(),
         userId: json['userId'] as int?,
         imageLocalPath: json['imageLocalPath'] as String?,
-        imageData: (json['imageData'] is List<int>)
-            ? Uint8List.fromList(json['imageData'] as List<int>)
+        imageData: json['imageData'] != null
+            ? Uint8List.fromList(
+                (json['imageData'] as List<dynamic>)
+                    .map((e) => e as int)
+                    .toList(),
+              )
             : null,
         notes: json['notes'] as String?,
         size: json['size'] as String?,
         tags: (json['tags'] as List<dynamic>?)
-            ?.map((e) => Tag.fromJson(e))
+            ?.map((e) => Tag.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
 
@@ -85,7 +88,7 @@ class Item extends BaseEntity {
         'price': price,
         'userId': userId,
         'imageLocalPath': imageLocalPath,
-        'imageData': imageData,
+        'imageData': imageData != null ? List<int>.from(imageData!) : null,
         'notes': notes,
       };
 }
