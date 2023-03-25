@@ -5,8 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() async {
   final remoteWeatherDataSource = RemoteWeatherDataSource();
   await dotenv.load();
-  test('test getWeatherData', () async {
-    final weatherData = await remoteWeatherDataSource.getWeatherData('London');
+  test('test findWeatherDataByCity', () async {
+    final weatherData =
+        await remoteWeatherDataSource.findWeatherDataByCity('London');
     expect(weatherData, isNotNull);
   });
 }

@@ -16,7 +16,7 @@ class RemoteWeatherDataSource {
   final NetworkClient _client;
   final String _baseUrl;
 
-  Future<CurrentWeatherData> getWeatherData(String city) async {
+  Future<CurrentWeatherData> findWeatherDataByCity(String city) async {
     logger.i('$RemoteWeatherDataSource: getWeatherData($city)');
     final response = await _client.get(
       "$_baseUrl?q=$city,uk&appid=${dotenv.env['OPEN_WEATHER_MAP_API_KEY']}",

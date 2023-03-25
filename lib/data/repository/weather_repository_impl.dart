@@ -17,10 +17,10 @@ class WeatherRepositoryImpl extends WeatherRepository {
   DateTime _lastUpdate = DateTime(0);
 
   @override
-  Future<CurrentWeatherData> getWeather(String city) {
+  Future<CurrentWeatherData> findWeatherDataByCity(String city) {
     if (_isStale()) {
       _lastUpdate = DateTime.now();
-      return _remoteDataSource.getWeatherData(city);
+      return _remoteDataSource.findWeatherDataByCity(city);
     }
     return Future.value(CurrentWeatherData());
   }
