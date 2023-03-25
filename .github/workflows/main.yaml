@@ -1,4 +1,4 @@
-name: wardrobe_frontend
+name: array_digital_wardrobe
 
 on: [pull_request, push]
 
