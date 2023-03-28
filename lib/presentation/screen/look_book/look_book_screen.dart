@@ -1,19 +1,30 @@
+import 'package:Array_App/bloc/search/search_cubit.dart';
+import 'package:Array_App/config/style_config.dart';
 import 'package:Array_App/domain/entity/item/item.dart';
 import 'package:Array_App/l10n/l10n.dart';
 import 'package:Array_App/presentation/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../bloc/search/search_cubit.dart';
-import '../../../config/style_config.dart';
-
-class LookBookScreen extends StatelessWidget {
+class LookBookScreen extends StatefulWidget {
   const LookBookScreen({super.key});
+
+  @override
+  State createState() => _LookBookScreenState();
+}
+
+class _LookBookScreenState extends State<LookBookScreen> {
+  late SearchCubit searchCubit;
+
+  @override
+  void initState() {
+    super.initState();
+    searchCubit = context.read<SearchCubit>();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final searchCubit = context.read<SearchCubit>()..clear(context);
     return Scaffold(
       appBar: CustomAppBar(
         title: l10n.lookBookScreenTitle,
@@ -34,6 +45,7 @@ class LookBookScreen extends StatelessWidget {
                       searchCubit.filterItems(context, value);
                     }
                   },
+                  textAlign: TextAlign.center,
                   decoration: InputDecoration(
                     hintText: l10n.lookBookScreenSearchBarDescription,
                   ),
