@@ -37,6 +37,8 @@ dependencies:
   remove_background: ^0.0.1
   image_picker: ^0.8.6+4
   gallery_saver: ^2.3.2
+  freezed: ^2.3.2
+  freezed_annotation: ^2.2.0
 
 dev_dependencies:
   bloc_test: ^9.1.0
@@ -44,6 +46,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   mocktail: ^0.3.0
+  mockito: ^5.0.15
 
 flutter:
   uses-material-design: true
@@ -51,3 +54,26 @@ flutter:
   assets:
     - assets/images/
     - .env
+
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # Options configure how source code is generated for every
+          # `@JsonSerializable`-annotated class in the package.
+          #
+          # The default value for each is listed.
+          any_map: false
+          checked: false
+          constructor: ""
+          create_factory: true
+          create_field_map: false
+          create_per_field_to_json: false
+          create_to_json: true
+          disallow_unrecognized_keys: false
+          explicit_to_json: false
+          field_rename: none
+          generic_argument_factories: false
+          ignore_unannotated: false
+          include_if_null: true
