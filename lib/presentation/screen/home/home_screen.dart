@@ -1,21 +1,17 @@
+import 'package:Array_App/bloc/item/item_bloc.dart';
+import 'package:Array_App/bloc/item/item_state.dart';
+import 'package:Array_App/bloc/weather/weather_bloc.dart';
 import 'package:Array_App/bloc/weather/weather_state.dart';
 import 'package:Array_App/config/style_config.dart';
+import 'package:Array_App/core/route/app_navigator.dart';
+import 'package:Array_App/core/route/app_route.dart';
 import 'package:Array_App/domain/entity/item/item.dart';
 import 'package:Array_App/l10n/l10n.dart';
+import 'package:Array_App/presentation/widget/widget.dart';
+import 'package:Array_App/rest/util/util_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-
-import '../../../bloc/item/item_bloc.dart';
-import '../../../bloc/item/item_state.dart';
-import '../../../bloc/weather/weather_bloc.dart';
-import '../../../core/route/app_navigator.dart';
-import '../../../core/route/app_route.dart';
-import '../../../rest/util/util_functions.dart';
-import '../../widget/indicator/linear_progress_indicator.dart';
-import '../../widget/sized_box_x8.dart';
-import '../../widget/weather/weather_functions.dart';
-import '../../widget/weather/weather_icon.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,11 +21,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late DateTime? _lastSnackBarShown = DateTime.utc(2020);
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    const borderRadius = BorderRadius.all(Radius.circular(8.0));
+    const borderRadius = BorderRadius.all(
+      Radius.circular(StyleConfig.borderRadiusS),
+    );
     final surface = Theme.of(context).colorScheme.surface;
     final shadowColor = Theme.of(context).colorScheme.shadow;
     final surfaceTint = Theme.of(context).colorScheme.primary;
@@ -48,9 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 surface,
               ),
               _dataRowWidget(),
-              const SizedBox8(),
+              SizedBox8(),
               _latestItemWidget(),
-              SizedBox(height: height * 0.1),
               _myLatestLook(),
             ],
           ),
@@ -83,9 +82,11 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GridView.count(
+              physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
-              crossAxisSpacing: 4,
+              crossAxisSpacing: 16,
               shrinkWrap: true,
+              childAspectRatio: 1 / 2,
               children: List.generate(
                 last2Items.length > 2 ? 2 : last2Items.length as int,
                 (index) {
@@ -106,6 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         )
                       else
                         Container(),
+                      SizedBox8(),
                       Text(brand, style: textStyleTop),
                       Text(
                         name,
@@ -164,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               ],
             ),
-            const SizedBox(height: StyleConfig.defaultMargin),
+            SizedBox16(),
             BlocBuilder<ItemBloc, ItemState>(
               builder: (context, state) {
                 final last2Items = state.items.reversed.take(2).toList();
@@ -173,8 +175,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else if (state is ItemLoaded) {
                   return latestItemMain(last2Items);
                 } else if (state is ItemError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.itemLoadError)),
+                  showSnackBarWithTimeout(
+                    context,
+                    l10n.itemLoadError,
                   );
                   return latestItemMain(last2Items);
                 }
@@ -206,14 +209,16 @@ class _HomeScreenState extends State<HomeScreen> {
           color: subtitleColor,
         );
     Widget latestItemMain(List<Item> last2Items) {
-      return SizedBox(
+      return SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GridView.count(
               crossAxisCount: 2,
-              crossAxisSpacing: 4,
+              crossAxisSpacing: 16,
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 1 / 2,
               children: List.generate(
                 last2Items.length,
                 (index) {
@@ -226,7 +231,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (last2Items[index].imageData != null)
                         Image(
                           width: double.infinity,
-                          height: height * 0.25,
                           image: MemoryImage(
                             last2Items[index].imageData!,
                           ),
@@ -234,6 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         )
                       else
                         Container(),
+                      SizedBox8(),
                       Text(brand, style: textStyleTop),
                       Text(
                         name,
@@ -244,6 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
+            SizedBox(height: height * 0.1),
           ],
         ),
       );
@@ -291,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: StyleConfig.defaultMargin),
-            BlocBuilder<ItemBloc, ItemState>(
+            BlocConsumer<ItemBloc, ItemState>(
               builder: (context, state) {
                 final last2Items = state.items.reversed.take(2).toList();
                 if (state is ItemLoading) {
@@ -299,12 +305,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else if (state is ItemLoaded) {
                   return latestItemMain(last2Items);
                 } else if (state is ItemError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.itemLoadError)),
-                  );
                   return latestItemMain(last2Items);
                 }
                 return latestItemMain(last2Items);
+              },
+              listener: (context, state) {
+                if (state is ItemError) {
+                  showSnackBar(context, l10n.itemLoadError);
+                }
               },
             ),
           ],
@@ -551,5 +559,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  void showSnackBarWithTimeout(BuildContext context, String message) {
+    final currentTime = DateTime.now();
+    if (_lastSnackBarShown == null ||
+        currentTime.difference(_lastSnackBarShown!).inSeconds >= 60) {
+      final snackBar = SnackBar(content: Text(message));
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      _lastSnackBarShown = currentTime;
+    }
   }
 }
