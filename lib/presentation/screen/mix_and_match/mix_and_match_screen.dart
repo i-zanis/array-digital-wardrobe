@@ -1,11 +1,11 @@
-import 'package:Array_App/config/style_config.dart';
-import 'package:Array_App/core/route/app_navigator.dart';
-import 'package:Array_App/core/route/app_route.dart';
+import 'package:Array_App/bloc/item/mix_and_match_cubit.dart';
 import 'package:Array_App/l10n/l10n.dart';
-import 'package:Array_App/rest/util/util_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../config/style_config.dart';
 import '../../../domain/entity/item/category.dart';
+import '../../../domain/entity/item/item.dart';
 import '../../widget/custom_app_bar.dart';
 import 'category_box.dart';
 
@@ -17,16 +17,21 @@ class MixAndMatchScreen extends StatefulWidget {
 }
 
 class _MixAndMatchScreenState extends State<MixAndMatchScreen> {
-  List<int> selectedBoxes = [];
-
-  final boxText = <Category>[
-    Category.TOP,
-    Category.BOTTOM,
-    Category.SHOES,
-    Category.ACCESSORIES,
-    Category.INNERWEAR,
-    Category.OTHER,
+  List<Item> initialItems = [
+    Item(category: Category.TOP),
+    Item(category: Category.BOTTOM),
+    Item(category: Category.SHOES),
+    Item(category: Category.ACCESSORIES),
+    Item(category: Category.INNERWEAR),
+    Item(category: Category.OTHER),
   ];
+  late final MixAndMatchCubit cubit;
+
+  @override
+  void initState() {
+    cubit = context.read<MixAndMatchCubit>();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,20 +41,21 @@ class _MixAndMatchScreenState extends State<MixAndMatchScreen> {
       appBar: CustomAppBar(
         title: l10n.mixAndMatchScreenTitle,
         subtitle: l10n.mixAndMatchScreenSubtitle,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: _handleBackButton(context),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(StyleConfig.defaultMargin),
+        padding: const EdgeInsets.all(Styles.defaultMargin),
         child: Column(
           children: [
-            _buildCategoryGrid(),
+            BlocBuilder<MixAndMatchCubit, List<Item>>(
+              builder: (context, state) {
+                return categoryGrid(state);
+              },
+            ),
             const Spacer(),
             FilledButton(
               onPressed: () =>
-                  _handleMatchStyle(l10n.mixAndMatchNoCategorySelectedError),
+                  _handleContinue(l10n.mixAndMatchNoCategorySelectedError),
               child: Text(l10n.mixAndMatchScreenButtonContinue),
             )
           ],
@@ -58,40 +64,42 @@ class _MixAndMatchScreenState extends State<MixAndMatchScreen> {
     );
   }
 
-  Widget _buildCategoryGrid() {
+  Widget categoryGrid(List<Item> selectableBoxes) {
     return GridView.count(
       shrinkWrap: true,
       crossAxisCount: 2,
+      physics: const NeverScrollableScrollPhysics(),
       children: List.generate(6, (index) {
-        return CategoryBox(
-          category: boxText[index],
-          isSelected: selectedBoxes.contains(index),
+        final item = initialItems[index];
+        final category = item.category ?? Category.TOP;
+        return SelectableBox(
+          category: category,
+          isSelected: selectableBoxes.any((i) => i.category == category),
           onTap: () {
-            setState(() {
-              if (selectedBoxes.contains(index)) {
-                selectedBoxes.remove(index);
-              } else {
-                selectedBoxes.add(index);
-              }
-            });
+            _handleAddCategory(selectableBoxes, category, item);
           },
         );
       }),
     );
   }
 
-  void _handleMatchStyle(String snackBarContent) {
-    if (selectedBoxes.isEmpty) {
-      showSnackBar(context, snackBarContent);
+  void _handleAddCategory(
+    List<Item> selectableBoxes,
+    Category category,
+    Item item,
+  ) {
+    if (selectableBoxes.any((i) => i.category == category)) {
+      cubit.removeItem(item);
     } else {
-      final itemsToMoveToNextScreen = <Category>[];
-      for (final index in selectedBoxes) {
-        itemsToMoveToNextScreen.add(boxText[index]);
-      }
-      AppNavigator.push(
-        AppRoute.mixAndMatchResult,
-        arguments: itemsToMoveToNextScreen,
-      );
+      cubit.addItem(item);
     }
+  }
+
+  void _handleContinue(String snackBarContent) {
+    cubit.selectItemsAndNextScreen(context, snackBarContent);
+  }
+
+  Widget _handleBackButton(BuildContext context) {
+    return cubit.popAndClear(context);
   }
 }
