@@ -82,3 +82,29 @@ void showSnackBar(BuildContext context, String content) {
     ),
   );
 }
+
+T getValueOrDefault<T>(dynamic value, T defaultValue) {
+  if (value == null) return defaultValue;
+  if (value is String) {
+    if (value.isEmpty) return defaultValue;
+    return value as T;
+  }
+  if (value is num) {
+    if (value == 0) return defaultValue;
+    return value as T;
+  }
+
+  return value as T;
+}
+
+String getStringOrDefault(dynamic value, [String defaultValue = '']) {
+  if (value == null) return defaultValue;
+  if (value is String) {
+    if (value.isEmpty) return defaultValue;
+    return value;
+  }
+  if (value is num) {
+    return value.toString();
+  }
+  return value.toString();
+}
