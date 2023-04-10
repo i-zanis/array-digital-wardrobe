@@ -6,7 +6,7 @@ class CustomActionButton extends StatelessWidget {
     super.key,
     required this.onPressed,
     required this.icon,
-    this.tooltip,
+    required this.tooltip,
   });
 
   final VoidCallback onPressed;
@@ -16,7 +16,7 @@ class CustomActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(StyleConfig.paddingS),
+      padding: const EdgeInsets.all(Styles.paddingS),
       child: FloatingActionButton(
         onPressed: onPressed,
         tooltip: tooltip,
