@@ -7,8 +7,10 @@ class RoutePaths {
   static const String wardrobe = '/wardrobe';
   static const String camera = '/camera';
   static const String itemProfile = '/item-profile';
-  static const String mixAndMatchPick = '/mix-and-match';
-  static const String mixAndMatchResult = '/mix-and-match-result';
+  static const String selectItemInGrid = '/mix-and-match';
+  static const String mixAndMatchResult = '/mix-and-match/result';
+  static const String mixAndMatchCategoryItems =
+      '/mix-and-match/result/category-items';
   static const Map<AppRoute, String> _pathMap = {
     AppRoute.root: root,
     AppRoute.home: home,
@@ -16,9 +18,10 @@ class RoutePaths {
     AppRoute.wardrobe: wardrobe,
     AppRoute.itemProfile: itemProfile,
     AppRoute.camera: camera,
-    AppRoute.mixAndMatchPick: mixAndMatchPick,
+    AppRoute.selectItemInGrid: selectItemInGrid,
     AppRoute.mixAndMatchResult: mixAndMatchResult,
+    AppRoute.mixAndMatchCategoryItems: mixAndMatchCategoryItems,
   };
 
-  static String of(AppRoute route) => _pathMap[route] ?? home;
+  static String of(AppRoute route) => _pathMap[route] ?? root;
 }

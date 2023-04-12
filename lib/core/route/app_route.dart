@@ -5,6 +5,7 @@ enum AppRoute {
   wardrobe,
   camera,
   itemProfile,
-  mixAndMatchPick,
+  selectItemInGrid,
   mixAndMatchResult,
+  mixAndMatchCategoryItems,
 }

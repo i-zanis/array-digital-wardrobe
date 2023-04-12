@@ -2,12 +2,13 @@ import 'package:Array_App/core/route/route.dart';
 import 'package:Array_App/presentation/screen/home/home_screen.dart';
 import 'package:Array_App/presentation/screen/item_profile/item_profile_screen.dart';
 import 'package:Array_App/presentation/screen/look_book/look_book_screen.dart';
+import 'package:Array_App/presentation/screen/mix_and_match/category_items_screen.dart';
 import 'package:Array_App/presentation/screen/root/root_screen.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../presentation/screen/item_profile/camera_screen.dart';
-import '../../presentation/screen/mix_and_match/mix_and_match_screen.dart';
 import '../../presentation/screen/mix_and_match/mix_and_match_screen_result.dart';
+import '../../presentation/screen/mix_and_match/select_item_in_grid_screen.dart';
 import '../../presentation/screen/wardrobe/wardrobe_screen.dart';
 
 // Class name (AppNavigator) due to conflict with Navigator
@@ -28,13 +29,18 @@ class AppNavigator {
         return FadeRoute(screen: const CameraScreen());
       case RoutePaths.itemProfile:
         return FadeRoute(screen: const ItemProfileScreen());
-      case RoutePaths.mixAndMatchPick:
-        return FadeRoute(screen: const MixAndMatchScreen());
+      case RoutePaths.selectItemInGrid:
+        return FadeRoute(
+          screen: SelectItemInGridScreen(
+            isFromCameraScreen: routeSettings.arguments,
+          ),
+        );
       case RoutePaths.mixAndMatchResult:
         return FadeRoute(
-          screen:
-              MixAndMatchResultScreen(selectedBoxes: routeSettings.arguments),
+          screen: const MixAndMatchResultScreen(),
         );
+      case RoutePaths.mixAndMatchCategoryItems:
+        return FadeRoute(screen: const MixAndMatchCategoryItemsScreen());
       case RoutePaths.root:
         return FadeRoute(
           screen: RootScreen(initialScreenIndex: routeSettings.arguments ?? 0),
