@@ -13,14 +13,18 @@ class CustomChip extends StatelessWidget {
     final labelStyle = Theme.of(context)
         .textTheme
         .labelLarge
-        ?.copyWith(color: Theme.of(context).colorScheme.onSecondaryContainer);
+        ?.copyWith(color: Theme.of(context).colorScheme.onTertiaryContainer);
     return Chip(
       label: Text(content),
-      backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+      backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
       labelStyle: labelStyle,
-      side: BorderSide(
-          // color: Theme.of(context).colorScheme.secondary,
-          color: Colors.transparent),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+      ),
+      side: const BorderSide(
+        // color: Theme.of(context).colorScheme.secondary,
+        color: Colors.transparent,
+      ),
     );
   }
 }
