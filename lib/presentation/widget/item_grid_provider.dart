@@ -7,15 +7,19 @@ class ItemGridProvider extends StatelessWidget {
   const ItemGridProvider({
     super.key,
     this.height = 380,
+    this.isLooks = false,
     required this.items,
   });
 
   final List<Item> items;
   final double height;
+  final bool isLooks;
 
   @override
   Widget build(BuildContext context) {
     final imageHeight = height * 0.5;
+    final filteredItems = items;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -27,9 +31,9 @@ class ItemGridProvider extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           childAspectRatio: 1 / 1.7,
           children: List.generate(
-            items.length,
+            filteredItems.length,
             (index) {
-              final item = items[index];
+              final item = filteredItems[index];
               return InteractiveGridItem(
                 item: item,
                 height: imageHeight,

@@ -1,5 +1,9 @@
 import 'package:Array_App/domain/entity/base_entity.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'look.g.dart';
+
+@JsonSerializable()
 class Look extends BaseEntity {
   Look({
     super.id,
@@ -9,12 +13,13 @@ class Look extends BaseEntity {
 
   Look.empty() : super.empty();
 
-  factory Look.fromJson(Map<String, dynamic> json) {
-    return Look(
-      id: json['id'] as int?,
-      name: json['name'] as String?,
-      description: json['description'] as String?,
-    );
+  factory Look.fromJson(Map<String, dynamic> json) => _$LookFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LookToJson(this);
+
+  @override
+  String toString() {
+    return 'Look {id: $id, name: $name, description: $description}';
   }
 
   String? name;
@@ -29,12 +34,5 @@ class Look extends BaseEntity {
       name: name ?? this.name,
       description: description ?? this.description,
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'description': description,
-    };
   }
 }

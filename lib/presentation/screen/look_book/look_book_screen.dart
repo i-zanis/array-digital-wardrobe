@@ -8,8 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/route/app_navigator.dart';
 import '../../../core/route/app_route.dart';
-import 'latest_item_widget.dart';
-import 'search_bar.dart';
+import '../../../domain/entity/item/look.dart';
+import '../../../main_development.dart';
 
 class LookBookScreen extends StatefulWidget {
   const LookBookScreen({super.key});
@@ -51,13 +51,15 @@ class _LookBookScreenState extends State<LookBookScreen> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(StyleConfig.defaultMargin),
+          padding: const EdgeInsets.all(Styles.defaultMargin),
           child: Column(
             children: [
               _searchBar(l10n),
+              Box.h32,
               _latestLookSection(l10n, titleStyle, subtitleStyle, titleColor),
+              Box.h8,
               _itemList(),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.12),
+              const BottomMargin()
             ],
           ),
         ),
@@ -66,15 +68,8 @@ class _LookBookScreenState extends State<LookBookScreen> {
   }
 
   Widget _searchBar(AppLocalizations l10n) {
-    return SearchBar(
+    return CustomSearchBar(
       searchCubit: searchCubit,
-      onQueryChanged: (value) {
-        if (value.isEmpty) {
-          searchCubit.clear(context);
-        } else {
-          searchCubit.filterItems(context, value);
-        }
-      },
       hintText: l10n.lookBookScreenSearchBarHint,
     );
   }
@@ -85,45 +80,76 @@ class _LookBookScreenState extends State<LookBookScreen> {
     TextStyle? subtitleStyle,
     Color? titleColor,
   ) {
-    return Padding(
-      padding: const EdgeInsets.all(StyleConfig.defaultMargin),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.latestLookTitle, style: titleStyle),
-              Row(
+    return Row(
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.latestLookTitle,
+              style: titleStyle,
+            ),
+            Box.h4,
+            InkWell(
+              child: Row(
                 children: [
-                  Icon(Icons.favorite_outline, color: titleColor),
-                  Text(l10n.seeFavouriteItem, style: subtitleStyle),
+                  Icon(
+                    Icons.arrow_circle_right_outlined,
+                    color: titleColor,
+                  ),
+                  Box.w4,
+                  Text(
+                    l10n.seeFavouriteLook,
+                    style: subtitleStyle,
+                  ),
                 ],
               ),
-            ],
+              // TODO(jtl): fix tap method
+              onTap: () => AppNavigator.push<dynamic>(AppRoute.itemProfile),
+            ),
+          ],
+        ),
+        const Spacer(),
+        //todo(jtl): add favourite screen and change route
+        PlusButton(
+          onPressed: () => AppNavigator.push<void>(
+            AppRoute.selectItemInGrid,
           ),
-          const Spacer(),
-          FloatingActionButton(
-            heroTag: l10n.mixAndMatch,
-            onPressed: () => AppNavigator.push<void>(AppRoute.mixAndMatchPick),
-            child: const Icon(Icons.add),
-          )
-        ],
-      ),
+          heroTag: l10n.mixAndMatchScreenTitle,
+        ),
+      ],
     );
   }
 
   Widget _itemList() {
     return BlocBuilder<SearchCubit, List<Item>>(
       builder: (context, state) {
+        final filteredItems = <Item>[];
+        final currentLooks = <Look>[];
+        for (final item in state) {
+          if (item.looks != null) {
+            for (final look in item.looks!) {
+              if (!currentLooks.contains(look)) {
+                currentLooks.add(look);
+                filteredItems.add(item);
+              }
+            }
+          }
+        }
+        logger
+          ..d('filteredLooks: $currentLooks')
+          ..d('filteredItems: $filteredItems');
         return state.isEmpty
-            ? const Center(child: Text('No items found'))
-            : Padding(
-                padding: const EdgeInsets.only(
-                  left: StyleConfig.defaultMargin,
-                  right: StyleConfig.defaultMargin,
-                ),
-                child: LatestLookWidget(items: state),
-              );
+            ? Column(
+                children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+                  Text(
+                    'No looks found',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ],
+              )
+            : ItemGridProvider(items: state, isLooks: true);
       },
     );
   }
