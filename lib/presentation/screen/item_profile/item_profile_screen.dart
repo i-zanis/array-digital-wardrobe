@@ -1,6 +1,4 @@
 import 'package:Array_App/l10n/l10n.dart';
-import 'package:Array_App/presentation/widget/custom_app_bar.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -9,15 +7,13 @@ import '../../../bloc/item/item_state.dart';
 import '../../../config/style_config.dart';
 import '../../../core/route/app_navigator.dart';
 import '../../../core/route/app_route.dart';
-import '../../../domain/entity/item/category.dart' as cat;
+import '../../../domain/entity/item/category.dart';
 import '../../../domain/entity/item/item.dart';
 import '../../../domain/entity/item/tag.dart';
+import '../../../main_development.dart';
 import '../../../rest/util/constants.dart';
 import '../../../rest/util/util_functions.dart';
-import '../../widget/button/custom_filled_button.dart';
-import '../../widget/button/favorite_button.dart';
-import '../../widget/constant/box.dart';
-import '../../widget/custom_chip.dart';
+import '../../widget/widget.dart';
 
 class ItemProfileScreen extends StatefulWidget {
   const ItemProfileScreen({super.key});
@@ -27,6 +23,44 @@ class ItemProfileScreen extends StatefulWidget {
 }
 
 class _ItemProfileScreenState extends State<ItemProfileScreen> {
+  late TextEditingController nameController;
+  late TextEditingController brandController;
+  late TextEditingController sizeController;
+  late TextEditingController colorController;
+  late TextEditingController priceController;
+  late TextEditingController tagController;
+  late TextEditingController otherController;
+  bool isReadOnly = false;
+
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController();
+    brandController = TextEditingController();
+    sizeController = TextEditingController();
+    colorController = TextEditingController();
+    priceController = TextEditingController();
+    tagController = TextEditingController();
+    otherController = TextEditingController();
+    final isItemNew =
+        BlocProvider.of<ItemBloc>(context).state.itemToAdd?.id != null;
+    if (isItemNew) {
+      isReadOnly = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    brandController.dispose();
+    sizeController.dispose();
+    colorController.dispose();
+    priceController.dispose();
+    tagController.dispose();
+    otherController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final labelTextStyle = Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -36,14 +70,6 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
     final inputFieldFillColor = Theme.of(context).colorScheme.tertiaryContainer;
     final borderColor = Theme.of(context).colorScheme.tertiary;
     final l10n = context.l10n;
-    final nameController = TextEditingController();
-    final brandController = TextEditingController();
-    final sizeController = TextEditingController();
-    final colorController = TextEditingController();
-    final priceController = TextEditingController();
-    final tagController = TextEditingController();
-    final otherController = TextEditingController();
-    final isEditing = false;
     final textStyleSecondRow = Theme.of(context)
         .textTheme
         .labelSmall
@@ -66,24 +92,38 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
           child: BlocBuilder<ItemBloc, ItemState>(
             builder: (context, state) {
               final itemToAdd = state.itemToAdd;
+              _initializeTextControllers(itemToAdd);
               return Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: CustomChip(
-                      content: _getCategory(context, itemToAdd?.category),
-                    ),
+                  Row(
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: CustomChip(
+                          content: _getCategory(context, itemToAdd?.category),
+                        ),
+                      ),
+                      const Spacer(),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: IconButton(
+                          color: Theme.of(context).colorScheme.tertiary,
+                          icon: const Icon(Icons.edit),
+                          onPressed: _handleEditButton,
+                        ),
+                      ),
+                    ],
                   ),
                   Box.h16,
-                  _inputField(
-                    l10n.itemProfileScreenNamePlaceHolder,
-                    nameController,
-                    labelTextStyle,
-                    inputFieldFillColor,
-                    borderColor,
+                  NameInputField(
+                    field: l10n.itemProfileScreenNamePlaceHolder,
+                    controller: nameController,
+                    fillColor: inputFieldFillColor,
+                    borderColor: borderColor,
+                    isEditingMode: isReadOnly,
                   ),
-                  // Box.h16,
+                  Box.h16,
                   _imageSection(itemToAdd),
                   Box.h16,
                   Material(
@@ -92,7 +132,7 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
                     surfaceTintColor: surfaceTint,
                     color: surface,
                     type: MaterialType.card,
-                    elevation: 2,
+                    elevation: 1,
                     child: Padding(
                       padding: const EdgeInsets.all(Styles.defaultPadding),
                       child: Column(
@@ -102,56 +142,45 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
                               brandController,
                               labelTextStyle,
                               inputFieldFillColor,
-                              borderColor),
+                              borderColor,
+                              isReadOnly),
                           _inputField(
-                            l10n.itemProfileScreenLabelSize,
-                            sizeController,
-                            labelTextStyle,
-                            inputFieldFillColor,
-                            borderColor,
-                          ),
+                              l10n.itemProfileScreenLabelSize,
+                              sizeController,
+                              labelTextStyle,
+                              inputFieldFillColor,
+                              borderColor,
+                              isReadOnly),
                           _inputField(
                               l10n.itemProfileScreenLabelColor,
                               colorController,
                               labelTextStyle,
                               inputFieldFillColor,
-                              borderColor),
+                              borderColor,
+                              isReadOnly),
                           _inputField(
                               l10n.itemProfileScreenLabelPrice,
                               priceController,
                               labelTextStyle,
                               inputFieldFillColor,
-                              borderColor),
+                              borderColor,
+                              isReadOnly),
                           _inputField(
                               l10n.itemProfileScreenLabelTag,
                               tagController,
                               labelTextStyle,
                               inputFieldFillColor,
-                              borderColor),
+                              borderColor,
+                              isReadOnly),
                           _textAreaInputField(
                               l10n.itemProfileScreenLabelOther,
                               otherController,
                               labelTextStyle,
                               inputFieldFillColor,
-                              borderColor),
+                              borderColor,
+                              isReadOnly),
                           Box.h16,
-                          CustomFilledButton(
-                            onPressed: () {
-                              handleSave(
-                                nameController,
-                                brandController,
-                                sizeController,
-                                colorController,
-                                priceController,
-                                tagController,
-                                otherController,
-                                context,
-                                l10n,
-                                state.itemToAdd?.imageData,
-                              );
-                            },
-                            content: l10n.itemProfileScreenItemCreationButton,
-                          ),
+                          _bottomButton(itemToAdd, context, l10n, isReadOnly),
                         ],
                       ),
                     ),
@@ -165,6 +194,45 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
     );
   }
 
+  Widget _bottomButton(Item? itemToAdd, BuildContext context,
+      AppLocalizations l10n, bool isReadOnly) {
+    return !isReadOnly
+        ? CustomFilledButton(
+            onPressed: () {
+              handleSave(
+                itemToAdd,
+                nameController,
+                brandController,
+                sizeController,
+                colorController,
+                priceController,
+                tagController,
+                otherController,
+                context,
+                l10n,
+              );
+            },
+            content: l10n.itemProfileScreenItemCreationButton,
+          )
+        : Container();
+  }
+
+  void _initializeTextControllers(Item? itemToAdd) {
+    if (itemToAdd != null) {
+      nameController.text = getStringOrDefault(itemToAdd.name);
+      brandController.text = getStringOrDefault(itemToAdd.brand);
+      sizeController.text = getStringOrDefault(itemToAdd.size);
+      colorController.text = itemToAdd.colors?.join(' ') ?? '';
+      priceController.text = getStringOrDefault(itemToAdd.price);
+      if (priceController.text == '0.0') {
+        priceController.text = '';
+      }
+      tagController.text =
+          itemToAdd.tags?.map((tag) => tag.name).join(' ') ?? '';
+      otherController.text = getStringOrDefault(itemToAdd.notes);
+    }
+  }
+
   Widget _imageSection(Item? itemToAdd) {
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.44,
@@ -174,11 +242,12 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
   }
 
   Row _getImageSection(Item? itemToAdd) {
+    final hasImage = itemToAdd != null && itemToAdd.imageData != null;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Spacer(),
-        if (itemToAdd != null && itemToAdd.imageData != null)
+        if (hasImage)
           Image(
             image: MemoryImage(itemToAdd.imageData!),
             // fit: BoxFit.cover,
@@ -217,12 +286,14 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
   Widget _deleteButton() {
     return InkWell(
       onTap: _handleDelete,
-      child: Icon(Icons.delete, color: Theme.of(context).colorScheme.secondary),
+      child: Icon(Icons.delete, color: Theme.of(context).colorScheme.tertiary),
     );
   }
 
   void _handleDelete() {
-    BlocProvider.of<ItemBloc>(context).add(UpdateItemToAdd(Item.empty()));
+    BlocProvider.of<ItemBloc>(context).add(
+      DeleteItem(context.read<ItemBloc>().state.itemToAdd!),
+    );
     AppNavigator.push<void>(AppRoute.root);
   }
 
@@ -235,6 +306,7 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
   }
 
   Future<void> handleSave(
+    Item? itemToAdd,
     TextEditingController nameController,
     TextEditingController brandController,
     TextEditingController sizeController,
@@ -244,25 +316,28 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
     TextEditingController otherController,
     BuildContext context,
     AppLocalizations l10,
-    Uint8List? image,
   ) async {
+    logger.i('*** id: ${itemToAdd?.id} Fav: ${itemToAdd?.isFavorite}');
     final item = Item(
+      id: itemToAdd?.id,
+      createdAt: itemToAdd?.createdAt,
       name: nameController.text,
-      brand: brandController.text,
-      category: cat.Category.TOP,
-      size: sizeController.text,
       colors: _validateColors(colorController),
+      brand: brandController.text,
+      category: itemToAdd?.category ?? Category.OTHER,
+      looks: itemToAdd?.looks ?? [],
+      isFavorite: itemToAdd?.isFavorite ?? false,
       price: double.tryParse(priceController.text) ?? 0.0,
+      // TODO(jtl): remove user hardcode id
+      userId: itemToAdd?.userId ?? 1,
+      imageData: itemToAdd?.imageData,
+      imageLocalPath: itemToAdd?.imageLocalPath,
+      notes: otherController.text,
+      size: sizeController.text,
       tags: tagController.text
           .split(Constants.space)
           .map((e) => Tag(name: e))
           .toList(),
-      notes: otherController.text,
-      userId: 1,
-      imageLocalPath: '',
-      imageData: image,
-      isFavorite: false,
-      looks: [],
     );
 
     _save(context, item, l10);
@@ -281,13 +356,19 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
     AppNavigator.push(AppRoute.root);
   }
 
-  Widget _inputField(String field, TextEditingController controller,
-      TextStyle labelTextStyle, Color fillColor, Color borderColor) {
+  Widget _inputField(
+    String field,
+    TextEditingController controller,
+    TextStyle labelTextStyle,
+    Color fillColor,
+    Color borderColor,
+    bool isEditingMode,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(Styles.paddingS),
       child: TextField(
         controller: controller,
-        readOnly: true,
+        readOnly: isEditingMode,
         decoration: InputDecoration(
           // filled: true,
           // fillColor: fillColor,
@@ -313,13 +394,19 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
     );
   }
 
-  Widget _textAreaInputField(String field, TextEditingController controller,
-      TextStyle labelTextStyle, Color fillColor, Color borderColor) {
+  Widget _textAreaInputField(
+      String field,
+      TextEditingController controller,
+      TextStyle labelTextStyle,
+      Color fillColor,
+      Color borderColor,
+      bool isEditMode) {
     // final labelTextStyle = Theme.of(context).textTheme.labelLarge;
     return Padding(
       padding: const EdgeInsets.all(Styles.paddingS),
       child: TextField(
         controller: controller,
+        readOnly: isEditMode,
         decoration: InputDecoration(
           // filled: true,
           // fillColor: fillColor,
@@ -366,5 +453,11 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
 
   String _getCategory(BuildContext context, Enum? category) {
     return getCategoryName(context, category);
+  }
+
+  void _handleEditButton() {
+    setState(() {
+      isReadOnly = false;
+    });
   }
 }
