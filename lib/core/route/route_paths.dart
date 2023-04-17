@@ -1,5 +1,7 @@
 import 'package:Array_App/core/route/app_route.dart';
 
+/// This class contains all the routes of the app.
+/// It is used to generate the routes in AppNavigator.
 class RoutePaths {
   static const String root = '/';
   static const String home = '/home';
@@ -11,6 +13,7 @@ class RoutePaths {
   static const String mixAndMatchResult = '/mix-and-match/result';
   static const String mixAndMatchCategoryItems =
       '/mix-and-match/result/category-items';
+  static const String lookProfile = '/look-book/profile';
   static const Map<AppRoute, String> _pathMap = {
     AppRoute.root: root,
     AppRoute.home: home,
@@ -21,7 +24,9 @@ class RoutePaths {
     AppRoute.selectItemInGrid: selectItemInGrid,
     AppRoute.mixAndMatchResult: mixAndMatchResult,
     AppRoute.mixAndMatchCategoryItems: mixAndMatchCategoryItems,
+    AppRoute.lookProfile: lookProfile
   };
 
+  /// Returns the route path for the given [AppRoute].
   static String of(AppRoute route) => _pathMap[route] ?? root;
 }

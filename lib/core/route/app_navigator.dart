@@ -1,21 +1,24 @@
 import 'package:Array_App/core/route/route.dart';
 import 'package:Array_App/presentation/screen/home/home_screen.dart';
+import 'package:Array_App/presentation/screen/item_profile/camera_screen.dart';
 import 'package:Array_App/presentation/screen/item_profile/item_profile_screen.dart';
 import 'package:Array_App/presentation/screen/look_book/look_book_screen.dart';
+import 'package:Array_App/presentation/screen/look_book/look_profile_screen.dart';
 import 'package:Array_App/presentation/screen/mix_and_match/category_items_screen.dart';
+import 'package:Array_App/presentation/screen/mix_and_match/mix_and_match_screen_result.dart';
+import 'package:Array_App/presentation/screen/mix_and_match/select_item_in_grid_screen.dart';
 import 'package:Array_App/presentation/screen/root/root_screen.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../presentation/screen/item_profile/camera_screen.dart';
-import '../../presentation/screen/mix_and_match/mix_and_match_screen_result.dart';
-import '../../presentation/screen/mix_and_match/select_item_in_grid_screen.dart';
 import '../../presentation/screen/wardrobe/wardrobe_screen.dart';
 
-// Class name (AppNavigator) due to conflict with Navigator
-//
+/// Class name (AppNavigator) due to conflict with Navigator
+/// This class is responsible for navigating between screens.
 class AppNavigator {
+  /// The [GlobalKey] used to access the [NavigatorState] of the app.
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
+  /// Used to access the current route and access the current route's arguments.
   static Route<void> onGenerateRoute(RouteSettings routeSettings) {
     final route = routeSettings.name;
     switch (route) {
@@ -45,6 +48,8 @@ class AppNavigator {
         return FadeRoute(
           screen: RootScreen(initialScreenIndex: routeSettings.arguments ?? 0),
         );
+      case RoutePaths.lookProfile:
+        return FadeRoute(screen: const LookProfileScreen());
       default:
         return FadeRoute(screen: const RootScreen());
     }
@@ -67,6 +72,7 @@ class AppNavigator {
         arguments: arguments);
   }
 
+  /// Pops the current route off the navigation stack.
   static void pop() => state?.pop();
 
   static NavigatorState? get state => navigatorKey.currentState;
