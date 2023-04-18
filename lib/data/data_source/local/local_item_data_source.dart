@@ -1,39 +1,45 @@
 import 'dart:convert';
 
+import 'package:Array_App/domain/entity/item/item.dart';
+import 'package:Array_App/main_development.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wardrobe_frontend/domain/entity/item.dart';
-import 'package:wardrobe_frontend/main_development.dart';
 
 class LocalItemDataSource {
   factory LocalItemDataSource() {
-    return _singleton;
+    return _eagerInstance;
   }
 
   // _internal is a private constructor You can create any private constructor
   // using any Class._someName construction
   LocalItemDataSource._internal();
 
-  static final LocalItemDataSource _singleton = LocalItemDataSource._internal();
+  static final LocalItemDataSource _eagerInstance =
+      LocalItemDataSource._internal();
   static final SharedPreferences? _prefs = sharedPrefs;
   static const String _itemsKey = 'items';
 
   Future<void> saveAll(List<Item> items) async {
+    logger.i('$LocalItemDataSource: Saving items');
     final itemsJson = items.map((item) => item.toJson()).toList();
-    logger.i('LocalItemDataSource: Saving all items: $itemsJson');
     await _prefs?.setStringList(
-        _itemsKey, itemsJson.map((e) => json.encode(e)).toList());
+      _itemsKey,
+      itemsJson.map((e) => json.encode(e)).toList(),
+    );
   }
 
   Future<void> save(Item item) async {
     final items = await findAll();
-    logger.i('LocalItemDataSource: Saving item: ${item.toJson()}');
+    logger..i('LocalItemDataSource: Saving item')
+        // ..i('LocalItemDataSource: ${item.toJson()}' )
+        ;
+
     final itemsWithoutUpdated = items.where((i) => item.id != i.id).toList()
       ..add(item);
     await saveAll(itemsWithoutUpdated);
   }
 
   Future<List<Item>> findAll() async {
-    logger.d('$LocalItemDataSource: Retrieving all items');
+    logger.i('$LocalItemDataSource: Retrieving all items');
     final itemsJson = _prefs?.getStringList(_itemsKey);
     if (itemsJson == null) {
       logger.i('No items found in local storage');
@@ -60,7 +66,7 @@ class LocalItemDataSource {
   }
 
   Future<Item> findById(int id) async {
-    logger.d('LocalItemDataSource: Retrieving item with id: $id');
+    logger.i('LocalItemDataSource: Retrieving item with id: $id');
     final items = await findAll();
     final item = items.firstWhere((i) => id == i.id);
     return item;
