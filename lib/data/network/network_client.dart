@@ -1,17 +1,21 @@
 import 'dart:async';
 
-import 'package:Array_App/domain/entity/item/item.dart';
 import 'package:dio/dio.dart';
 
 abstract class NetworkClient {
-  Future<Response> get(String url);
+  Future<Response<dynamic>> get(String url);
 
   Future<Response<dynamic>> post(String url, dynamic data);
 
-  Future<Response> put(String url, dynamic data);
+  Future<Response<dynamic>> postMultiPart(
+    // Change the return type here
+    String url,
+    dynamic data,
+    Map<String, dynamic> headers,
+  );
 
-  Future<Response> deleteById(String url);
+  Future<Response<dynamic>> put(String url, dynamic data);
 
-  Future<Response> postMultipart(String url, Item item);
-// Future<Response> postMultipart(String url, Map<String, dynamic> data);
+  // TODO(jtl) - change to delete
+  Future<Response<dynamic>> deleteById(String url);
 }
