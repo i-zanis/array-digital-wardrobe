@@ -1,4 +1,4 @@
-class StyleConfig {
+class Styles {
   // ******************************* Padding ***********************************
   static const double paddingS = 8;
   static const double paddingM = 16;
@@ -22,12 +22,6 @@ class StyleConfig {
   static const double iconSizeM = 24;
   static const double iconSizeL = 32;
   static const double defaultIconSize = iconSizeM;
-
-  // ******************************* Font Size *********************************
-  static const double fontSizeS = 12;
-  static const double fontSizeM = 16;
-  static const double fontSizeL = 20;
-  static const double defaultFontSize = fontSizeM;
 
   // ******************************* Elevation *********************************
   static const double elevationS = 2;
