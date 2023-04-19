@@ -14,35 +14,33 @@ class LoadWeatherUseCase implements UseCase<CurrentWeatherData, String> {
   @override
   Future<CurrentWeatherData> execute(String city) async {
     logger.i('$LoadWeatherUseCase execute city: $city');
-    if (await validate(city)) {
-      return _weatherRepository.findWeatherDataByCity(city);
-    }
-    return Future.error(WeatherUseCaseException('Invalid city name'));
+    final sanitizedCity = city.trim();
+    await validate(sanitizedCity);
+    return _weatherRepository.findWeatherDataByCity(city);
   }
 
   @override
-  Future<bool> validate(String city) async {
-    final sanitizedCity = city.trim();
-    if (sanitizedCity.isEmpty) {
-      throw WeatherUseCaseException("City name can't be empty");
+  Future<void> validate(String city) async {
+    if (city.isEmpty) {
+      throw WeatherUseCaseException(message: "City name can't be empty");
     }
-    if (_isInvalidCityName(sanitizedCity)) {
-      throw WeatherUseCaseException('City name contains invalid characters');
-    }
-    if (_isInvalidCityNameLength(sanitizedCity)) {
+    if (_isInvalidCityName(city)) {
       throw WeatherUseCaseException(
-        'City name should be between 2 and 60 characters',
+          message: 'City name contains invalid characters');
+    }
+    if (_isInvalidCityNameLength(city)) {
+      throw WeatherUseCaseException(
+        message: 'City name should be between 2 and 60 characters',
       );
     }
-    return true;
   }
 
-  bool _isInvalidCityName(String value) {
+  bool _isInvalidCityName(String city) {
     // r == raw string
-    return !RegExp(r'^[a-zA-Z]+$').hasMatch(value);
+    return !RegExp(r'^[a-zA-Z]+$').hasMatch(city);
   }
 
   bool _isInvalidCityNameLength(String cityName) {
-    return cityName.isEmpty || cityName.length > 60;
+    return cityName.length < 2 || cityName.length > 60;
   }
 }
