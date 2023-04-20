@@ -80,11 +80,12 @@ class _LookBookComponentState extends State<LookBookComponent> {
                     height: height,
                   ),
                 ),
-                const Align(
+                Align(
                   alignment: Alignment.topRight,
                   child: Icon(
                     Icons.check,
-                    size: 50,
+                    color: Colors.white.withOpacity(0.5),
+                    size: 100,
                   ),
                 ),
               ],

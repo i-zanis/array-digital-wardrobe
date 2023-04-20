@@ -12,9 +12,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../bloc/item/item_state.dart';
 import '../../../domain/entity/item/category.dart';
+import '../../../domain/entity/item/look.dart';
 import '../../../domain/entity/item/tag.dart';
 import '../../../main_development.dart';
 import '../../../rest/util/util_functions.dart';
+import '../../widget/indicator/custom_circular_progress_indicator.dart';
 import '../../widget/widget.dart';
 
 class LookProfileScreen extends StatefulWidget {
@@ -45,7 +47,7 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
     tagController = TextEditingController();
     otherController = TextEditingController();
     final isItemNew =
-        BlocProvider.of<ItemBloc>(context).state.itemToAdd?.id != null;
+        BlocProvider.of<ItemBloc>(context).state.lookToAdd?.id != null;
     if (isItemNew) {
       isReadOnly = true;
     }
@@ -54,10 +56,6 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
   @override
   void dispose() {
     nameController.dispose();
-    brandController.dispose();
-    sizeController.dispose();
-    colorController.dispose();
-    priceController.dispose();
     tagController.dispose();
     otherController.dispose();
     super.dispose();
@@ -93,8 +91,8 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
           padding: const EdgeInsets.all(Styles.defaultPadding),
           child: BlocBuilder<ItemBloc, ItemState>(
             builder: (context, state) {
-              final itemToAdd = state.itemToAdd;
-              _initializeTextControllers(itemToAdd);
+              final lookToAdd = state.lookToAdd;
+              _initializeTextControllers(lookToAdd);
               return Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -120,9 +118,9 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
                     isEditingMode: isReadOnly,
                   ),
                   // Box.h16,
-                  // _imageSection(itemToAdd),
+                  _imageSection(lookToAdd),
                   Box.h16,
-                  ItemsInThisLookSection(),
+                  const ItemsInThisLookSection(),
                   const TagSection(),
                 ],
               );
@@ -133,13 +131,13 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
     );
   }
 
-  Widget _bottomButton(Item? itemToAdd, BuildContext context,
+  Widget _bottomButton(Item? lookToAdd, BuildContext context,
       AppLocalizations l10n, bool isReadOnly) {
     return !isReadOnly
         ? CustomFilledButton(
             onPressed: () {
               handleSave(
-                itemToAdd,
+                lookToAdd,
                 nameController,
                 brandController,
                 sizeController,
@@ -156,58 +154,63 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
         : Container();
   }
 
-  void _initializeTextControllers(Item? itemToAdd) {
-    if (itemToAdd != null) {
-      nameController.text = getStringOrDefault(itemToAdd.name);
-      brandController.text = getStringOrDefault(itemToAdd.brand);
-      sizeController.text = getStringOrDefault(itemToAdd.size);
-      colorController.text = itemToAdd.colors?.join(' ') ?? '';
-      priceController.text = getStringOrDefault(itemToAdd.price);
-      if (priceController.text == '0.0') {
-        priceController.text = '';
-      }
-      tagController.text =
-          itemToAdd.tags?.map((tag) => tag.name).join(' ') ?? '';
-      otherController.text = getStringOrDefault(itemToAdd.notes);
+  void _initializeTextControllers(Look? lookToAdd) {
+    if (lookToAdd != null) {
+      nameController.text = getStringOrDefault(lookToAdd.name);
     }
   }
 
-  Widget _imageSection(Item? itemToAdd) {
+  Widget _imageSection(Look? lookToAdd) {
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.44,
       width: MediaQuery.of(context).size.width,
-      child: _getImageSection(itemToAdd),
+      child: _getImageSection(lookToAdd),
     );
   }
 
-  Row _getImageSection(Item? itemToAdd) {
-    final hasImage = itemToAdd != null && itemToAdd.imageData != null;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Spacer(),
-        if (hasImage)
-          Image(
-            image: MemoryImage(itemToAdd.imageData!),
-            // fit: BoxFit.cover,
-          ),
-        Box.h8,
-        Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.all(Styles.paddingS),
-              child: _favoriteButton(),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(Styles.paddingS),
-              child: _deleteButton(),
-            )
-          ],
-        ),
-        Box.h16
-      ],
+  Widget _getImageSection(Look? lookToAdd) {
+    return BlocBuilder<ItemBloc, ItemState>(
+      builder: (context, state) {
+        final hasImage = state.lookToAdd?.lookImageData != null;
+        if (state is ItemLoading) {
+          return const Center(
+            child: CustomCircularProgressIndicator(),
+          );
+        }
+        if (state is ItemLoaded) {
+          return Stack(
+            children: [
+              if (hasImage)
+                Align(
+                  child: Image(
+                    image: MemoryImage(state.lookToAdd!.lookImageData!),
+                    fit: BoxFit.cover,
+                  ),
+                )
+              else
+                // TODO(jtl): require b events not executed in order
+                const CustomCircularProgressIndicator(),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(Styles.paddingS),
+                      child: _favoriteButton(),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(Styles.paddingS),
+                      child: _deleteButton(),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+        return Container();
+      },
     );
   }
 
@@ -263,10 +266,8 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
       id: itemToAdd?.id,
       createdAt: itemToAdd?.createdAt,
       name: nameController.text,
-      colors: _validateColors(colorController),
       brand: brandController.text,
       category: itemToAdd?.category ?? Category.OTHER,
-      looks: itemToAdd?.looks ?? [],
       isFavorite: itemToAdd?.isFavorite ?? false,
       price: double.tryParse(priceController.text) ?? 0.0,
       // TODO(jtl): remove user hardcode id
@@ -386,16 +387,6 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
     // ),
   }
 
-  List<String> _validateColors(TextEditingController colorController) {
-    final colors = colorController.text.split(Constants.space);
-    if (colors.isEmpty || colors[0] == '') return [];
-    return colors;
-  }
-
-  String _getCategory(BuildContext context, Enum? category) {
-    return getCategoryName(context, category);
-  }
-
   void _handleEditButton() {
     setState(() {
       isReadOnly = false;
@@ -410,24 +401,22 @@ class ItemsInThisLookSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final itemBloc = context.read<ItemBloc>();
-    final itemToAdd = itemBloc.state.itemToAdd;
-    final look = itemToAdd?.looks?.first;
-    final allItems = itemBloc.state.items;
-    final lookItems = [];
-
-    if (look != null) {
-      for (final item in allItems) {
-        if (item.looks?.first.id == look.id) {
-          lookItems.add(item);
-        }
+    final itemToAdd = itemBloc.state.lookToAdd;
+    final lookItems = itemBloc.state.lookToAdd?.items ?? [];
+    return BlocBuilder<ItemBloc, ItemState>(builder: (context, state) {
+      if (state is ItemLoaded) {
+        return Wrap(
+          alignment: WrapAlignment.center,
+          children: lookItems
+              .map(
+                (item) => LookBookComponent(
+                  item: item,
+                ),
+              )
+              .toList(),
+        );
       }
-    }
-    return Wrap(
-      children: lookItems
-          .map((item) => LookBookComponent(
-                item: item as Item,
-              ))
-          .toList(),
-    );
+      return Container();
+    });
   }
 }

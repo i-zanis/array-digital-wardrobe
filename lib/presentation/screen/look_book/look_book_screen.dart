@@ -1,6 +1,5 @@
-import 'package:Array_App/bloc/search/search_cubit.dart';
+import 'package:Array_App/bloc/search/look_search_cubit.dart';
 import 'package:Array_App/config/style_config.dart';
-import 'package:Array_App/domain/entity/item/item.dart';
 import 'package:Array_App/l10n/l10n.dart';
 import 'package:Array_App/presentation/widget/widget.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +8,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/route/app_navigator.dart';
 import '../../../core/route/app_route.dart';
 import '../../../domain/entity/item/look.dart';
-import '../../../main_development.dart';
 
 class LookBookScreen extends StatefulWidget {
   const LookBookScreen({super.key});
@@ -19,12 +17,12 @@ class LookBookScreen extends StatefulWidget {
 }
 
 class _LookBookScreenState extends State<LookBookScreen> {
-  late SearchCubit searchCubit;
+  late dynamic searchCubit;
 
   @override
   void initState() {
     super.initState();
-    searchCubit = context.read<SearchCubit>();
+    searchCubit = context.read<LookSearchCubit>();
   }
 
   @override
@@ -122,23 +120,8 @@ class _LookBookScreenState extends State<LookBookScreen> {
   }
 
   Widget _itemList() {
-    return BlocBuilder<SearchCubit, List<Item>>(
+    return BlocBuilder<LookSearchCubit, List<Look>>(
       builder: (context, state) {
-        final filteredItems = <Item>[];
-        final currentLooks = <Look>[];
-        for (final item in state) {
-          if (item.looks != null) {
-            for (final look in item.looks!) {
-              if (!currentLooks.contains(look)) {
-                currentLooks.add(look);
-                filteredItems.add(item);
-              }
-            }
-          }
-        }
-        logger
-          ..d('filteredLooks: $currentLooks')
-          ..d('filteredItems: $filteredItems');
         return state.isEmpty
             ? Column(
                 children: [
@@ -149,7 +132,7 @@ class _LookBookScreenState extends State<LookBookScreen> {
                   ),
                 ],
               )
-            : ItemGridProvider(items: state, isLooks: true);
+            : LookGridProvider(looks: state, isLooks: true);
       },
     );
   }
