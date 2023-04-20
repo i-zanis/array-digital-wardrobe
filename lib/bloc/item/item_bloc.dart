@@ -1,22 +1,21 @@
 import 'dart:async';
 
 import 'package:Array_App/bloc/item/item_state.dart';
-import 'package:Array_App/domain/entity/item/item.dart';
-import 'package:Array_App/domain/use_case/initial_load_use_case.dart';
-import 'package:Array_App/domain/use_case/item/add_item_use_case.dart';
-import 'package:Array_App/domain/use_case/item/delete_item_use_case.dart';
-import 'package:Array_App/domain/use_case/item/update_item_use_case.dart';
+import 'package:Array_App/domain/entity/entity.dart';
+import 'package:Array_App/domain/use_case/use_case.dart';
 import 'package:Array_App/main_development.dart';
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 class ItemBloc extends Bloc<ItemEvent, ItemState> {
   ItemBloc(
     this._initialLoadUseCase,
+    this._initialLookLoadUseCase,
     this._saveItemUseCase,
     this._deleteItemUseCase,
     this._updateItemUseCase,
+    this._removeBackgroundUseCase,
   ) : super(const ItemState.initial()) {
     on<LoadItem>(
       _onLoadStarted,
@@ -35,23 +34,39 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
       transformer: (events, mapper) => events.switchMap(mapper),
     );
     on<UpdateItemToAdd>(
-      onUpdateItemToAdd,
+      _onUpdateItemToAdd,
+      transformer: (events, mapper) => events.switchMap(mapper),
+    );
+    on<UpdateLookToAdd>(
+      _onUpdateLookToAdd,
+      transformer: (events, mapper) => events.switchMap(mapper),
+    );
+    on<RemoveBackground>(
+      _onRemoveBackground,
       transformer: (events, mapper) => events.switchMap(mapper),
     );
   }
 
-  final InitialLoadUseCase _initialLoadUseCase;
+  final InitialItemLoadUseCase _initialLoadUseCase;
+  final InitialLookLoadUseCase _initialLookLoadUseCase;
   final SaveItemUseCase _saveItemUseCase;
   final DeleteItemUseCase _deleteItemUseCase;
   final UpdateItemUseCase _updateItemUseCase;
+  final RemoveBackgroundUseCase _removeBackgroundUseCase;
 
   Future<void> _onLoadStarted(ItemEvent event, Emitter<ItemState> emit) async {
     try {
       emit(ItemLoading(items: state.items));
-      final items = await _initialLoadUseCase.execute(1);
-      emit(ItemLoaded(items: items));
+      final loadItemsFuture = _initialLoadUseCase.execute(1);
+      final loadLooksFuture = _initialLookLoadUseCase.execute(1);
+      final results = await Future.wait([loadItemsFuture, loadLooksFuture]);
+      final items = results[0] as List<Item>;
+      final looks = results[1] as List<Look>;
+      emit(ItemLoaded(items: items, looks: looks));
     } on Exception catch (e) {
+      logger.e('Error while loading items: $e');
       emit(ItemLoadFailure(e));
+      emit(ItemLocalLoaded(items: state.items));
     }
   }
 
@@ -59,9 +74,14 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
     emit(ItemLoading(items: state.items));
     try {
       final item = await _saveItemUseCase.execute(event.item);
-      emit(ItemLoaded(items: [...state.items, item]));
+      // Remove item from state and add the updated instance
+      final updatedItems = state.items.where((i) => i.id != item.id).toList()
+        ..add(item);
+      emit(ItemLoaded(items: updatedItems));
     } on Exception catch (e) {
-      emit(ItemError(e));
+      logger.e('Error while saving item: $e');
+      emit(ItemLoadFailure(e));
+      emit(ItemLocalLoaded(items: state.items));
     }
   }
 
@@ -71,13 +91,16 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
     // following block required for null safety
     if (id == null) {
       emit(ItemError(Exception('The item contains invalid data.')));
+      emit(ItemLocalLoaded(items: state.items));
       return;
     }
     try {
       await _deleteItemUseCase.execute(id);
       emit(ItemLoaded(items: state.items.where((i) => i.id != id).toList()));
     } on Exception catch (e) {
+      logger.e('Error while deleting item: $e');
       emit(ItemLoadFailure(e));
+      emit(ItemLocalLoaded(items: state.items));
     }
   }
 
@@ -91,21 +114,63 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
         ),
       );
     } on Exception catch (e) {
+      logger.e('Error while updating item: $e');
       emit(ItemLoadFailure(e));
+      emit(ItemLocalLoaded(items: state.items));
     }
   }
 
-  FutureOr<void> onUpdateItemToAdd(
+  Future<void> _onUpdateItemToAdd(
     UpdateItemToAdd event,
     Emitter<ItemState> emit,
-  ) {
+  ) async {
     emit(ItemLoading(items: state.items));
     try {
-      logger
-          .d('onUpdateItemToAdd: ${event.itemToAdd.imageData![0].toString()}');
       emit(ItemLoaded(items: state.items, itemToAdd: event.itemToAdd));
     } on Exception catch (e) {
+      logger.e('Error while updating item: $e');
       emit(ItemLoadFailure(e));
+      emit(ItemLocalLoaded(items: state.items));
+    }
+  }
+
+  Future<void> _onUpdateLookToAdd(
+    UpdateLookToAdd event,
+    Emitter<ItemState> emit,
+  ) async {
+    emit(ItemLoading(items: state.items));
+    try {
+      logger.d('Updating look to add');
+      emit(ItemLoaded(items: state.items, lookToAdd: event.lookToAdd));
+    } on Exception catch (e) {
+      logger.e('Error while updating look: $e');
+      emit(ItemLoadFailure(e));
+      emit(ItemLocalLoaded(items: state.items, looks: state.looks));
+    }
+  }
+
+  Future<void> _onRemoveBackground(
+    RemoveBackground event,
+    Emitter<ItemState> emit,
+  ) async {
+    emit(ItemLoading(items: state.items));
+    try {
+      final image =
+          await (await _removeBackgroundUseCase.execute(event.filepath))
+              .readAsBytes();
+      logger.d('Removing background');
+      emit(
+        ItemLoaded(
+          items: state.items,
+          looks: state.looks,
+          itemToAdd: Item().copyWith(imageData: image),
+          lookToAdd: Look().copyWith(lookImageData: image),
+        ),
+      );
+    } on Exception catch (e) {
+      logger.e('Error while removing background: $e');
+      emit(ItemLoadFailure(e));
+      emit(ItemLocalLoaded(items: state.items));
     }
   }
 }
@@ -117,13 +182,33 @@ abstract class ItemEvent extends Equatable {
   List<Object> get props => [];
 }
 
+class UpdateLookToAdd extends ItemEvent {
+  const UpdateLookToAdd(this.lookToAdd);
+
+  final Look lookToAdd;
+
+  @override
+  List<Object> get props => [lookToAdd];
+}
+
 class UpdateItemToAdd extends ItemEvent {
-  UpdateItemToAdd(this.itemToAdd) {}
+  const UpdateItemToAdd(this.itemToAdd);
 
   final Item itemToAdd;
 
   @override
   List<Object> get props => [itemToAdd];
+}
+
+class RemoveBackground extends ItemEvent {
+  const RemoveBackground({
+    required this.filepath,
+  });
+
+  final String filepath;
+
+  @override
+  List<Object> get props => [filepath];
 }
 
 class LoadItem extends ItemEvent {
