@@ -8,5 +8,6 @@ enum AppRoute {
   selectItemInGrid,
   mixAndMatchResult,
   mixAndMatchCategoryItems,
-  lookProfile
+  lookProfile,
+  lookStudio,
 }

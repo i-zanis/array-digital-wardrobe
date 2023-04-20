@@ -13,7 +13,10 @@ class RoutePaths {
   static const String mixAndMatchResult = '/mix-and-match/result';
   static const String mixAndMatchCategoryItems =
       '/mix-and-match/result/category-items';
+  static const String lookStudio =
+      '/look-book/mix-and-match/result/look-studio';
   static const String lookProfile = '/look-book/profile';
+
   static const Map<AppRoute, String> _pathMap = {
     AppRoute.root: root,
     AppRoute.home: home,
@@ -24,7 +27,8 @@ class RoutePaths {
     AppRoute.selectItemInGrid: selectItemInGrid,
     AppRoute.mixAndMatchResult: mixAndMatchResult,
     AppRoute.mixAndMatchCategoryItems: mixAndMatchCategoryItems,
-    AppRoute.lookProfile: lookProfile
+    AppRoute.lookProfile: lookProfile,
+    AppRoute.lookStudio: lookStudio,
   };
 
   /// Returns the route path for the given [AppRoute].

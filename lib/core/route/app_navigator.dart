@@ -10,6 +10,7 @@ import 'package:Array_App/presentation/screen/mix_and_match/select_item_in_grid_
 import 'package:Array_App/presentation/screen/root/root_screen.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../presentation/screen/mix_and_match/look_studio_screen.dart';
 import '../../presentation/screen/wardrobe/wardrobe_screen.dart';
 
 /// Class name (AppNavigator) due to conflict with Navigator
@@ -50,6 +51,8 @@ class AppNavigator {
         );
       case RoutePaths.lookProfile:
         return FadeRoute(screen: const LookProfileScreen());
+      case RoutePaths.lookStudio:
+        return FadeRoute(screen: const LookStudioScreen());
       default:
         return FadeRoute(screen: const RootScreen());
     }
