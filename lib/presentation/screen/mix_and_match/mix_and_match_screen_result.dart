@@ -4,7 +4,6 @@ import 'package:Array_App/core/route/app_navigator.dart';
 import 'package:Array_App/core/route/app_route.dart';
 import 'package:Array_App/domain/entity/entity.dart';
 import 'package:Array_App/l10n/l10n.dart';
-import 'package:Array_App/main_development.dart';
 import 'package:Array_App/presentation/widget/widget.dart';
 import 'package:Array_App/rest/util/util_functions.dart';
 import 'package:flutter/material.dart';
@@ -19,16 +18,6 @@ class MixAndMatchResultScreen extends StatefulWidget {
 
 class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
   List<Item> selectedBoxes = [];
-
-  final boxText = <Category>[
-    Category.TOP,
-    Category.BOTTOM,
-    Category.SHOES,
-    Category.ACCESSORIES,
-    Category.INNERWEAR,
-    Category.OTHER,
-  ];
-
   late final MixAndMatchCubit cubit;
 
   @override
@@ -72,14 +61,11 @@ class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: List.generate(selectedBoxes.length, (index) {
                   final boxColor = backgroundColors[index % 3];
-                  final category = selectedBoxes[index].category;
                   final text1 = selectedBoxes[index].category?.name;
                   final text2 = l10n.mixAndMatchAddFromWardrobe;
                   return GestureDetector(
                     onTap: () {
-                      if (index.isOdd) {
-                        AppNavigator.push(AppRoute.mixAndMatchCategoryItems);
-                      }
+                      _handleAddFromWardrobe(index);
                     },
                     child: index.isEven
                         ? leftGridItem(
@@ -116,16 +102,25 @@ class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
                   );
                 }),
               ),
-              FilledButton(
+              CustomFilledButton(
                 onPressed: () =>
                     _handleContinue(l10n.mixAndMatchScreenButtonContinue),
-                child: Text(l10n.mixAndMatchScreenButtonContinue),
+                content: l10n.mixAndMatchConfirm,
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _handleAddFromWardrobe(int index) {
+    if (index.isOdd) {
+      cubit.selectItem(selectedBoxes[index]);
+      AppNavigator.replaceWith<void>(
+        AppRoute.mixAndMatchCategoryItems,
+      );
+    }
   }
 
   Container leftGridItem(
@@ -137,9 +132,8 @@ class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
   ) {
     final item = selectedBoxes[index];
     final itemImageData = item.imageData;
-    logger.d('Image data is $itemImageData');
     if (itemImageData != null && itemImageData.isNotEmpty) {
-      logger.d('Image data is not null');
+      // logger.d('Image data is not null');
       return Container(
         margin: const EdgeInsets.all(Styles.marginS),
         // alignment: Alignment.center,
@@ -178,12 +172,12 @@ class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
     if (selectedBoxes.isEmpty) {
       showSnackBar(context, snackBarContent);
     } else {
-      AppNavigator.push<void>(AppRoute.mixAndMatchResult);
+      AppNavigator.push<void>(AppRoute.lookStudio);
     }
   }
 
   /// Duplicate items in the list to create a grid of boxes
   void _generateBoxes() {
-    selectedBoxes = cubit.state.expand((item) => [item, item]).toList();
+    selectedBoxes = cubit.state.items.expand((item) => [item, item]).toList();
   }
 }
