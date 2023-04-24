@@ -1,7 +1,9 @@
 import 'package:Array_App/config/style_config.dart';
 import 'package:flutter/material.dart';
 
+import '../../../config/custom_color.dart';
 import '../../../domain/entity/item/category.dart';
+import '../../../rest/util/util_functions.dart';
 
 class SelectableBox extends StatelessWidget {
   const SelectableBox({
@@ -23,20 +25,20 @@ class SelectableBox extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.all(StyleConfig.marginS),
+        margin: const EdgeInsets.all(Styles.marginS),
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(StyleConfig.radiusM),
+          borderRadius: BorderRadius.circular(Styles.radiusM),
           border: isSelected
               ? Border.all(
                   color: Theme.of(context).colorScheme.primary,
-                  width: StyleConfig.borderL,
+                  width: Styles.borderL,
                 )
               : null,
         ),
         child: Center(
           child: Text(
-            category.name.toUpperCase(),
+            getCategoryName(context, category),
             style: Theme.of(context).textTheme.bodyLarge?.apply(
                   color: textColor,
                 ),
@@ -48,29 +50,23 @@ class SelectableBox extends StatelessWidget {
 
   Color _getBackgroundColor(BuildContext context) {
     final index = category.index;
-    switch (index % 3) {
-      case 0:
-        return Theme.of(context).colorScheme.primaryContainer;
-      case 1:
-        return Theme.of(context).colorScheme.secondaryContainer;
-      case 2:
-        return Theme.of(context).colorScheme.tertiaryContainer;
-      default:
-        return Colors.grey;
-    }
+    final colorScheme = Theme.of(context).colorScheme;
+    final backgroundColorMap = {
+      0: colorScheme.primaryContainer,
+      1: Theme.of(context).extension<CustomColors>()!.extended1Container!,
+      2: colorScheme.tertiaryContainer,
+    };
+    return backgroundColorMap[index % 3] ?? Colors.grey;
   }
 
   Color _getTextColor(BuildContext context) {
     final index = category.index;
-    switch (index % 3) {
-      case 0:
-        return Theme.of(context).colorScheme.onPrimaryContainer;
-      case 1:
-        return Theme.of(context).colorScheme.onSecondaryContainer;
-      case 2:
-        return Theme.of(context).colorScheme.onTertiaryContainer;
-      default:
-        return Colors.black;
-    }
+    final colorScheme = Theme.of(context).colorScheme;
+    final color = {
+      0: colorScheme.onPrimaryContainer,
+      1: Theme.of(context).extension<CustomColors>()!.onExtended1Container!,
+      2: colorScheme.onTertiaryContainer,
+    };
+    return color[index % 3] ?? Colors.black;
   }
 }
