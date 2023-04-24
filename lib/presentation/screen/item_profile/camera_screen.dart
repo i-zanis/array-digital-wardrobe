@@ -4,12 +4,8 @@ import 'dart:io';
 import 'package:Array_App/bloc/item/item_bloc.dart';
 import 'package:Array_App/core/route/app_navigator.dart';
 import 'package:Array_App/core/route/app_route.dart';
-import 'package:Array_App/domain/entity/item/item.dart';
-import 'package:Array_App/main_development.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gallery_saver/gallery_saver.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -31,9 +27,6 @@ class _CameraScreenState extends State<CameraScreen> {
   String? _retrieveDataError;
 
   final ImagePicker _picker = ImagePicker();
-  final TextEditingController maxWidthController = TextEditingController();
-  final TextEditingController maxHeightController = TextEditingController();
-  final TextEditingController qualityController = TextEditingController();
 
   @override
   void initState() {
@@ -53,7 +46,7 @@ class _CameraScreenState extends State<CameraScreen> {
     BuildContext? context,
   }) async {
     try {
-      var image = await _picker.pickImage(
+      final image = await _picker.pickImage(
         source: source,
         maxWidth: 320,
         maxHeight: 640,
@@ -63,21 +56,9 @@ class _CameraScreenState extends State<CameraScreen> {
         await AppNavigator.push(AppRoute.root, arguments: 3);
         return;
       }
-
-      var newImage = File(image.path);
-      logger.i('newImage: $newImage');
-      // newImage = await removeBackground(newImage.path);
-      await GallerySaver.saveImage(newImage.path, albumName: 'Array_App');
-      image = XFile(newImage.path);
-      setState(() {
-        _setImageFileListFromFile(image);
-      });
-      if (mounted) {
-        final imageBytes = await image.readAsBytes();
-        BlocProvider.of<ItemBloc>(context!)
-            .add(UpdateItemToAdd(Item(imageData: imageBytes)));
-      }
-      logger.d('image path: ${image.path}');
+      final newImage = File(image.path);
+      BlocProvider.of<ItemBloc>(context!)
+          .add(RemoveBackground(filepath: newImage.path));
       await AppNavigator.push(AppRoute.selectItemInGrid, arguments: true);
     } catch (e) {
       setState(() {
@@ -89,14 +70,6 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   void deactivate() {
     super.deactivate();
-  }
-
-  @override
-  void dispose() {
-    maxWidthController.dispose();
-    maxHeightController.dispose();
-    qualityController.dispose();
-    super.dispose();
   }
 
   Future<void> retrieveLostData() async {
@@ -114,48 +87,6 @@ class _CameraScreenState extends State<CameraScreen> {
       });
     } else {
       _retrieveDataError = response.exception!.code;
-    }
-  }
-
-  Text? _getRetrieveErrorWidget() {
-    if (_retrieveDataError != null) {
-      final result = Text(_retrieveDataError!);
-      _retrieveDataError = null;
-      return result;
-    }
-    return null;
-  }
-
-  Future<File> removeBackground(String imageFilePath) async {
-    logger.i('Removing background from image');
-    final imageFile = File(imageFilePath);
-    final outputFile = File('${imageFile.path}_no_bg.png');
-    // var headers = {'X-API-Key': 'fksjlk'};
-    var headers = {'X-API-Key': 'hzHAEXKWZt8NPsDeM2hdQn92'};
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('https://api.remove.bg/v1.0/removebg'),
-    );
-    request.fields.addAll({'size': 'auto'});
-    request.files
-        .add(await http.MultipartFile.fromPath('image_file', imageFilePath));
-    request.headers.addAll(headers);
-
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
-    } else {
-      logger.e(response.reasonPhrase);
-      print(response.stream.bytesToString());
-      return imageFile;
-    }
-
-    if (response.statusCode == 200) {
-      await outputFile.writeAsBytes(await response.stream.toBytes());
-      return outputFile;
-    } else {
-      throw Exception('Failed to remove background from image');
     }
   }
 
