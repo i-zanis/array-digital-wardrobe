@@ -2,17 +2,14 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:Array_App/bloc/bloc.dart';
-import 'package:Array_App/domain/use_case/load_weather_data_use_case.dart';
+import 'package:Array_App/bloc/item/mix_and_match_cubit.dart';
+import 'package:Array_App/bloc/search/item_search_cubit.dart';
+import 'package:Array_App/bloc/search/look_search_cubit.dart';
+import 'package:Array_App/bloc/weather/weather_event.dart';
+import 'package:Array_App/domain/use_case/use_case.dart';
+import 'package:Array_App/main_development.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'bloc/search/search_cubit.dart';
-import 'bloc/weather/weather_event.dart';
-import 'domain/use_case/initial_load_use_case.dart';
-import 'domain/use_case/item/add_item_use_case.dart';
-import 'domain/use_case/item/delete_item_use_case.dart';
-import 'domain/use_case/item/update_item_use_case.dart';
-import 'main_development.dart';
 
 class AppBlocObserver extends BlocObserver {
 //   @override
@@ -54,18 +51,28 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
     providers: [
       BlocProvider<ItemBloc>(
         create: (context) => ItemBloc(
-          InitialLoadUseCase(),
+          InitialItemLoadUseCase(),
+          InitialLookLoadUseCase(),
           SaveItemUseCase(),
           DeleteItemUseCase(),
           UpdateItemUseCase(),
+          RemoveBackgroundUseCase(),
         )..add(const LoadItem()),
       ),
       BlocProvider<WeatherBloc>(
         create: (context) =>
             WeatherBloc(LoadWeatherUseCase())..add(const LoadWeather()),
       ),
-      BlocProvider<SearchCubit>(
-        create: (BuildContext context) => SearchCubit(context.read<ItemBloc>()),
+      BlocProvider<ItemSearchCubit>(
+        create: (BuildContext context) =>
+            ItemSearchCubit(context.read<ItemBloc>()),
+      ),
+      BlocProvider<LookSearchCubit>(
+        create: (BuildContext context) =>
+            LookSearchCubit(context.read<ItemBloc>()),
+      ),
+      BlocProvider<MixAndMatchCubit>(
+        create: (BuildContext context) => MixAndMatchCubit(),
       ),
     ],
     child: await builder(),
