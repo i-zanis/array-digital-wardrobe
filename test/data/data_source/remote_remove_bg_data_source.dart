@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:Array_App/data/data_source/remote/remote_remove_bg_data_source.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   final dataSource = RemoteBackgroundDataSource();
