@@ -10,7 +10,7 @@ class CustomLinearProgressIndicator extends StatelessWidget {
     return LinearProgressIndicator(
       backgroundColor: backgroundColor,
       valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-      semanticsLabel: 'Linear progress indicator',
+      semanticsLabel: 'Loading',
     );
   }
 }
