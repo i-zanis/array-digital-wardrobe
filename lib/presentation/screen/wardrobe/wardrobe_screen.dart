@@ -1,9 +1,9 @@
+import 'package:Array_App/bloc/search/item_search_cubit.dart';
 import 'package:Array_App/l10n/l10n.dart';
 import 'package:Array_App/presentation/widget/item_grid_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../bloc/search/search_cubit.dart';
 import '../../../config/style_config.dart';
 import '../../../domain/entity/entity.dart';
 import '../../widget/constant/box.dart';
@@ -18,13 +18,13 @@ class WardrobeScreen extends StatefulWidget {
 }
 
 class _WardrobeScreenState extends State<WardrobeScreen> {
-  late SearchCubit searchCubit;
+  late ItemSearchCubit searchCubit;
   final List<Category> categories = [];
 
   @override
   void initState() {
     super.initState();
-    searchCubit = context.read<SearchCubit>();
+    searchCubit = context.read<ItemSearchCubit>();
   }
 
   void _onCategorySelected(Category category) {
@@ -42,8 +42,9 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     final l10n = context.l10n;
     final titleColor = Theme.of(context).colorScheme.onSurface;
     final subtitleColor = Theme.of(context).colorScheme.onSurface;
-    final titleStyle = Theme.of(context).textTheme.headlineSmall?.apply(
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
           color: titleColor,
+          fontWeight: FontWeight.bold,
         );
     final subtitleStyle = Theme.of(context).textTheme.titleSmall?.apply(
           color: subtitleColor,
@@ -67,7 +68,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
               _searchBar(l10n),
               Box.h8,
               _categoryList(),
-              _itemList(),
+              _itemList(searchCubit),
               SizedBox(height: MediaQuery.of(context).size.height * 0.1),
             ],
           ),
@@ -93,18 +94,6 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
           final category = Category.values[index];
           final categoryName = category.toString().split('.').last;
           final isSelected = categories.contains(category);
-          // return Row(
-          //   children: [
-          //     FilterChip(
-          //       selected: isSelected,
-          //       label: Text('Test123'),
-          //       onSelected: (bool value) {
-          //         _onCategorySelected(category);
-          //       },
-          //     ),
-          //     SizedBox(width: 8),
-          //   ],
-          // );
           return InkWell(
             onTap: () => _onCategorySelected(category),
             child: Padding(
@@ -128,8 +117,8 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     );
   }
 
-  Widget _itemList() {
-    return BlocBuilder<SearchCubit, List<Item>>(
+  Widget _itemList(ItemSearchCubit cubit) {
+    return BlocBuilder<ItemSearchCubit, List<Item>>(
       builder: (context, state) {
         if (state.isEmpty) {
           return const Column(
