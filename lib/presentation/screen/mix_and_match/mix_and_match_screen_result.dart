@@ -1,4 +1,5 @@
 import 'package:Array_App/bloc/item/mix_and_match_cubit.dart';
+import 'package:Array_App/config/custom_color.dart';
 import 'package:Array_App/config/style_config.dart';
 import 'package:Array_App/core/route/app_navigator.dart';
 import 'package:Array_App/core/route/app_route.dart';
@@ -32,12 +33,12 @@ class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
     final l10n = context.l10n;
     final backgroundColors = <Color>[
       Theme.of(context).colorScheme.primaryContainer,
-      Theme.of(context).colorScheme.secondaryContainer,
+      Theme.of(context).extension<CustomColors>()!.extended2Container!,
       Theme.of(context).colorScheme.tertiaryContainer
     ];
     final textColors = <Color>[
       Theme.of(context).colorScheme.onPrimaryContainer,
-      Theme.of(context).colorScheme.onSecondaryContainer,
+      Theme.of(context).extension<CustomColors>()!.onExtended2Container!,
       Theme.of(context).colorScheme.onTertiaryContainer,
     ];
 
@@ -69,7 +70,12 @@ class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
                     },
                     child: index.isEven
                         ? leftGridItem(
-                            boxColor, index, context, text1, textColors)
+                            boxColor,
+                            index,
+                            context,
+                            text1,
+                            textColors,
+                          )
                         : Container(
                             margin: const EdgeInsets.all(Styles.marginS),
                             child: Column(
@@ -133,10 +139,9 @@ class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
     final item = selectedBoxes[index];
     final itemImageData = item.imageData;
     if (itemImageData != null && itemImageData.isNotEmpty) {
-      // logger.d('Image data is not null');
       return Container(
+        color: getItemBackgroundColor(context),
         margin: const EdgeInsets.all(Styles.marginS),
-        // alignment: Alignment.center,
         child: Image.memory(
           item.imageData!,
           width: double.infinity,
