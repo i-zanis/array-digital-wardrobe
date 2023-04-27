@@ -1,9 +1,8 @@
+import 'package:Array_App/config/custom_color.dart';
 import 'package:Array_App/config/style_config.dart';
+import 'package:Array_App/domain/entity/item/category.dart';
+import 'package:Array_App/rest/util/util_functions.dart';
 import 'package:flutter/material.dart';
-
-import '../../../config/custom_color.dart';
-import '../../../domain/entity/item/category.dart';
-import '../../../rest/util/util_functions.dart';
 
 class SelectableBox extends StatelessWidget {
   const SelectableBox({
@@ -56,7 +55,7 @@ class SelectableBox extends StatelessWidget {
       1: Theme.of(context).extension<CustomColors>()!.extended1Container!,
       2: colorScheme.tertiaryContainer,
     };
-    return backgroundColorMap[index % 3] ?? Colors.grey;
+    return backgroundColorMap[index % 3] ?? getItemBackgroundColor(context);
   }
 
   Color _getTextColor(BuildContext context) {
