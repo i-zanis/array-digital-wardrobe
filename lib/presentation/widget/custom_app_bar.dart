@@ -4,21 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  CustomAppBar({
+  const CustomAppBar({
     super.key,
     this.leading = const SizedBox.shrink(),
     this.showLeading = false,
-    this.height = defaultHeight * 2,
+    this.height = defaultHeight * 1.5,
     this.title = '',
     this.subtitle = '',
   });
 
+  static const defaultHeight = 56.0;
   final String title;
   final String subtitle;
   final Widget? leading;
   final bool showLeading;
-  static const defaultHeight = 56.0;
-  double height;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -29,30 +29,35 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         statusBarBrightness: Brightness.light,
       ),
       backgroundColor: Colors.transparent,
-      leading: _getLeadingButtonFunction(context),
+      leading: _leadingActionButton(context),
       centerTitle: true,
       toolbarHeight: height,
       title: Column(
         children: [
           Box.h8,
-          Text(title, style: Theme.of(context).textTheme.headlineLarge),
+          Text(
+            title,
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
           Text(
             subtitle,
             style: Theme.of(context).textTheme.titleSmall,
           ),
+          Box.h8,
         ],
       ),
     );
   }
 
-  Widget? _getLeadingButtonFunction(BuildContext context) {
-    return showLeading
-        ? const IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: AppNavigator.pop,
-          )
-        : leading;
-  }
+  Widget? _leadingActionButton(BuildContext context) => showLeading
+      ? const IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: AppNavigator.pop,
+        )
+      : leading;
 
   @override
   Size get preferredSize => Size.fromHeight(height);
