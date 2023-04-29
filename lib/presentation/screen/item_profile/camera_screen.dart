@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:Array_App/bloc/item/item_bloc.dart';
 import 'package:Array_App/core/route/app_navigator.dart';
 import 'package:Array_App/core/route/app_route.dart';
+import 'package:Array_App/main_development.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -17,15 +17,6 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
-  List<XFile>? _imageFileList;
-
-  void _setImageFileListFromFile(XFile? value) {
-    _imageFileList = value == null ? null : <XFile>[value];
-  }
-
-  dynamic _pickImageError;
-  String? _retrieveDataError;
-
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -36,7 +27,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.transparent,
     );
   }
@@ -61,40 +52,12 @@ class _CameraScreenState extends State<CameraScreen> {
           .add(RemoveBackground(filepath: newImage.path));
       await AppNavigator.push(AppRoute.selectItemInGrid, arguments: true);
     } catch (e) {
-      setState(() {
-        _pickImageError = e;
-      });
+      logger.e('$CameraScreen: $e');
     }
   }
 
   @override
   void deactivate() {
     super.deactivate();
-  }
-
-  Future<void> retrieveLostData() async {
-    final response = await _picker.retrieveLostData();
-    if (response.isEmpty) {
-      return;
-    }
-    if (response.file != null) {
-      setState(() {
-        if (response.files == null) {
-          _setImageFileListFromFile(response.file);
-        } else {
-          _imageFileList = response.files;
-        }
-      });
-    } else {
-      _retrieveDataError = response.exception!.code;
-    }
-  }
-
-  Future<void> saveImageToGallery(File imageFile) async {
-    final directory = await getExternalStorageDirectory();
-    final galleryPath = '${directory!.absolute.path}/Pictures';
-    final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-    final filePath = '$galleryPath/$fileName';
-    final savedFile = await imageFile.copy(filePath);
   }
 }
