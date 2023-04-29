@@ -11,7 +11,7 @@ void main() {
           price: 9.99,
           category: Category.TOP,
           userId: 1,
-          looks: [Look(name: 'Test Look 1'), Look(name: 'Test Look 2')],
+          // looks: [Look(name: 'Test Look 1'), Look(name: 'Test Look 2')],
           tags: [Tag(name: 'Test Tag 1'), Tag(name: 'Test Tag 2')]);
 
       final savedItem = await dataSource.save(item);
