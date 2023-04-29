@@ -1,11 +1,11 @@
 import 'dart:async';
 
+import 'package:Array_App/data/data_source/local/local_item_data_source.dart';
 import 'package:Array_App/domain/entity/item/item.dart';
 import 'package:Array_App/domain/repository/item_repository.dart';
 import 'package:Array_App/main_development.dart';
 import 'package:Array_App/rest/util/util_functions.dart';
 
-import '../data_source/local/local_item_data_source.dart';
 import '../data_source/remote/remote_item_data_source.dart';
 
 class ItemRepositoryImpl implements ItemRepository {
@@ -20,7 +20,7 @@ class ItemRepositoryImpl implements ItemRepository {
 
   final LocalItemDataSource _localDataSource;
   final RemoteItemDataSource _remoteDataSource;
-  final Duration _timeToLive = const Duration(seconds: 5);
+  final Duration _timeToLive = const Duration(seconds: 2);
   DateTime _lastUpdate = DateTime(0);
   int? _userId;
 
@@ -62,7 +62,7 @@ class ItemRepositoryImpl implements ItemRepository {
   // Update the item in both local and remote data sources
   @override
   Future<Item> update(Item item) async {
-    logger.i('$ItemRepositoryImpl: Updating item: $item');
+    logger.i('$ItemRepositoryImpl: Updating item: $item.id');
     final updatedItem = await _remoteDataSource.update(item);
     await _localDataSource.update(updatedItem);
     return updatedItem;

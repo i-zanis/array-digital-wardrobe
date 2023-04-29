@@ -14,8 +14,8 @@ class PlusButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
-      backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-      foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
       elevation: 0,
       heroTag: heroTag,
       onPressed: onPressed,

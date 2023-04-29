@@ -15,6 +15,8 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
     this._saveItemUseCase,
     this._deleteItemUseCase,
     this._updateItemUseCase,
+    this._saveLookUseCase,
+    this._updateLookUseCase,
     this._removeBackgroundUseCase,
   ) : super(const ItemState.initial()) {
     on<LoadItem>(
@@ -25,12 +27,12 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
       _onSaveItem,
       transformer: (events, mapper) => events.switchMap(mapper),
     );
-    on<DeleteItem>(
-      _onDeleteItem,
-      transformer: (events, mapper) => events.switchMap(mapper),
-    );
     on<UpdateItem>(
       _onUpdateItem,
+      transformer: (events, mapper) => events.switchMap(mapper),
+    );
+    on<DeleteItem>(
+      _onDeleteItem,
       transformer: (events, mapper) => events.switchMap(mapper),
     );
     on<UpdateItemToAdd>(
@@ -45,6 +47,14 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
       _onRemoveBackground,
       transformer: (events, mapper) => events.switchMap(mapper),
     );
+    on<SaveLook>(
+      _onSaveLook,
+      transformer: (events, mapper) => events.switchMap(mapper),
+    );
+    on<UpdateLook>(
+      _onUpdateLook,
+      transformer: (events, mapper) => events.switchMap(mapper),
+    );
   }
 
   final InitialItemLoadUseCase _initialLoadUseCase;
@@ -53,10 +63,12 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
   final DeleteItemUseCase _deleteItemUseCase;
   final UpdateItemUseCase _updateItemUseCase;
   final RemoveBackgroundUseCase _removeBackgroundUseCase;
+  final SaveLookUseCase _saveLookUseCase;
+  final UpdateLookUseCase _updateLookUseCase;
 
   Future<void> _onLoadStarted(ItemEvent event, Emitter<ItemState> emit) async {
     try {
-      emit(ItemLoading(items: state.items));
+      emit(ItemLoading(items: state.items, looks: state.looks));
       final loadItemsFuture = _initialLoadUseCase.execute(1);
       final loadLooksFuture = _initialLookLoadUseCase.execute(1);
       final results = await Future.wait([loadItemsFuture, loadLooksFuture]);
@@ -64,59 +76,60 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
       final looks = results[1] as List<Look>;
       emit(ItemLoaded(items: items, looks: looks));
     } on Exception catch (e) {
-      logger.e('Error while loading items: $e');
-      emit(ItemLoadFailure(e));
-      emit(ItemLocalLoaded(items: state.items));
+      logger.e('$_onLoadStarted: $e');
+      emit(ItemLocalLoaded(items: state.items, looks: state.looks));
     }
   }
 
   Future<void> _onSaveItem(SaveItem event, Emitter<ItemState> emit) async {
-    emit(ItemLoading(items: state.items));
+    emit(ItemLoading(items: state.items, looks: state.looks));
     try {
       final item = await _saveItemUseCase.execute(event.item);
       // Remove item from state and add the updated instance
       final updatedItems = state.items.where((i) => i.id != item.id).toList()
         ..add(item);
-      emit(ItemLoaded(items: updatedItems));
+      emit(ItemLoaded(items: updatedItems, looks: state.looks));
     } on Exception catch (e) {
-      logger.e('Error while saving item: $e');
-      emit(ItemLoadFailure(e));
-      emit(ItemLocalLoaded(items: state.items));
+      logger.e('$_onSaveItem: $e');
+      emit(ItemLocalLoaded(items: state.items, looks: state.looks));
     }
   }
 
   Future<void> _onDeleteItem(DeleteItem event, Emitter<ItemState> emit) async {
-    emit(ItemLoading(items: state.items));
+    emit(ItemLoading(items: state.items, looks: state.looks));
     final id = event.item.id;
     // following block required for null safety
     if (id == null) {
       emit(ItemError(Exception('The item contains invalid data.')));
-      emit(ItemLocalLoaded(items: state.items));
       return;
     }
     try {
       await _deleteItemUseCase.execute(id);
-      emit(ItemLoaded(items: state.items.where((i) => i.id != id).toList()));
+      emit(
+        ItemLoaded(
+          items: state.items.where((i) => i.id != id).toList(),
+          looks: state.looks,
+        ),
+      );
     } on Exception catch (e) {
-      logger.e('Error while deleting item: $e');
-      emit(ItemLoadFailure(e));
-      emit(ItemLocalLoaded(items: state.items));
+      logger.e('$_onDeleteItem($id): $e');
+      emit(ItemLocalLoaded(items: state.items, looks: state.looks));
     }
   }
 
   Future<void> _onUpdateItem(UpdateItem event, Emitter<ItemState> emit) async {
-    emit(ItemLoading(items: state.items));
+    emit(ItemLoading(items: state.items, looks: state.looks));
     try {
       final item = await _updateItemUseCase.execute(event.item);
       emit(
         ItemLoaded(
           items: state.items.map((i) => i.id == item.id ? item : i).toList(),
+          looks: state.looks,
         ),
       );
     } on Exception catch (e) {
-      logger.e('Error while updating item: $e');
-      emit(ItemLoadFailure(e));
-      emit(ItemLocalLoaded(items: state.items));
+      logger.e('$_onUpdateItem: $e');
+      emit(ItemLocalLoaded(items: state.items, looks: state.looks));
     }
   }
 
@@ -124,13 +137,49 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
     UpdateItemToAdd event,
     Emitter<ItemState> emit,
   ) async {
-    emit(ItemLoading(items: state.items));
+    emit(ItemLoading(items: state.items, looks: state.looks));
     try {
-      emit(ItemLoaded(items: state.items, itemToAdd: event.itemToAdd));
+      emit(
+        ItemLoaded(
+          items: state.items,
+          looks: state.looks,
+          itemToAdd: event.itemToAdd,
+        ),
+      );
     } on Exception catch (e) {
-      logger.e('Error while updating item: $e');
-      emit(ItemLoadFailure(e));
-      emit(ItemLocalLoaded(items: state.items));
+      logger.e('$_onUpdateItemToAdd: $e');
+      emit(ItemLocalLoaded(items: state.items, looks: state.looks));
+    }
+  }
+
+  Future<void> _onSaveLook(SaveLook event, Emitter<ItemState> emit) async {
+    emit(ItemLoading(items: state.items, looks: state.looks));
+    try {
+      logger.d('Saving look: ${event.look}');
+      final look = await _saveLookUseCase.execute(event.look);
+      // Remove look from state and add the updated instance
+      final updatedLooks = state.looks.where((i) => i.id != look.id).toList()
+        ..add(look);
+      emit(ItemLoaded(items: state.items, looks: updatedLooks));
+    } on Exception catch (e) {
+      logger.e('$_onSaveLook: $e');
+      emit(ItemLocalLoaded(items: state.items, looks: state.looks));
+    }
+  }
+
+  Future<void> _onUpdateLook(UpdateLook event, Emitter<ItemState> emit) async {
+    emit(ItemLoading(items: state.items, looks: state.looks));
+    try {
+      final look = await _updateLookUseCase.execute(event.look);
+      emit(
+        ItemLoaded(
+          items: state.items,
+          looks: state.looks.map((i) => i.id == look.id ? look : i).toList(),
+        ),
+      );
+    } on Exception catch (e) {
+      logger.e('$_onUpdateLook: $e');
+      emit(ItemLocalLoaded(items: state.items, looks: state.looks));
     }
   }
 
@@ -138,13 +187,20 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
     UpdateLookToAdd event,
     Emitter<ItemState> emit,
   ) async {
-    emit(ItemLoading(items: state.items));
+    emit(ItemLoading(items: state.items, looks: state.looks));
     try {
       logger.d('Updating look to add');
-      emit(ItemLoaded(items: state.items, lookToAdd: event.lookToAdd));
+      emit(
+        ItemLoaded(
+          items: state.items,
+          lookToAdd: event.lookToAdd,
+          looks: state.looks,
+        ),
+      );
     } on Exception catch (e) {
-      logger.e('Error while updating look: $e');
+      logger.e('$_onUpdateLookToAdd: $e');
       emit(ItemLoadFailure(e));
+      await Future<void>.delayed(const Duration(seconds: 1));
       emit(ItemLocalLoaded(items: state.items, looks: state.looks));
     }
   }
@@ -153,24 +209,25 @@ class ItemBloc extends Bloc<ItemEvent, ItemState> {
     RemoveBackground event,
     Emitter<ItemState> emit,
   ) async {
-    emit(ItemLoading(items: state.items));
+    logger.i('$ItemBloc: Removing background from image.');
+    emit(ItemLoading(items: state.items, looks: state.looks));
     try {
       final image =
           await (await _removeBackgroundUseCase.execute(event.filepath))
               .readAsBytes();
-      logger.d('Removing background');
       emit(
         ItemLoaded(
           items: state.items,
           looks: state.looks,
-          itemToAdd: Item().copyWith(imageData: image),
-          lookToAdd: Look().copyWith(lookImageData: image),
+          itemToAdd:
+              state.itemToAdd?.copyWith(imageData: image) ?? Item.empty(),
+          lookToAdd:
+              state.lookToAdd?.copyWith(lookImageData: image) ?? Look.empty(),
         ),
       );
     } on Exception catch (e) {
-      logger.e('Error while removing background: $e');
-      emit(ItemLoadFailure(e));
-      emit(ItemLocalLoaded(items: state.items));
+      logger.e('$_onRemoveBackground: $e');
+      emit(ItemLocalLoaded(items: state.items, looks: state.looks));
     }
   }
 }
@@ -227,6 +284,24 @@ class SaveItem extends ItemEvent {
 
   @override
   List<Object> get props => [item];
+}
+
+class SaveLook extends ItemEvent {
+  const SaveLook(this.look);
+
+  final Look look;
+
+  @override
+  List<Object> get props => [look];
+}
+
+class UpdateLook extends ItemEvent {
+  const UpdateLook(this.look);
+
+  final Look look;
+
+  @override
+  List<Object> get props => [look];
 }
 
 class LikeItem extends ItemEvent {
