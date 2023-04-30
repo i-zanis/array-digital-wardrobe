@@ -1,22 +1,27 @@
+import 'package:Array_App/bloc/item/item_bloc.dart';
 import 'package:Array_App/bloc/item/mix_and_match_cubit.dart';
+import 'package:Array_App/bloc/item/mix_and_match_state.dart';
+import 'package:Array_App/config/style_config.dart';
+import 'package:Array_App/core/route/app_navigator.dart';
+import 'package:Array_App/core/route/app_route.dart';
+import 'package:Array_App/domain/entity/item/category.dart';
+import 'package:Array_App/domain/entity/item/item.dart';
 import 'package:Array_App/l10n/l10n.dart';
+import 'package:Array_App/presentation/screen/mix_and_match/category_box.dart';
+import 'package:Array_App/presentation/widget/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../config/style_config.dart';
-import '../../../domain/entity/item/category.dart';
-import '../../../domain/entity/item/item.dart';
-import '../../widget/custom_app_bar.dart';
-import 'category_box.dart';
+class SelectItemInGridScreen extends StatefulWidget {
+  const SelectItemInGridScreen({super.key, this.isFromCameraScreen});
 
-class MixAndMatchScreen extends StatefulWidget {
-  const MixAndMatchScreen({super.key});
+  final Object? isFromCameraScreen;
 
   @override
-  State createState() => _MixAndMatchScreenState();
+  State createState() => _SelectItemInGridScreenState();
 }
 
-class _MixAndMatchScreenState extends State<MixAndMatchScreen> {
+class _SelectItemInGridScreenState extends State<SelectItemInGridScreen> {
   List<Item> initialItems = [
     Item(category: Category.TOP),
     Item(category: Category.BOTTOM),
@@ -26,30 +31,32 @@ class _MixAndMatchScreenState extends State<MixAndMatchScreen> {
     Item(category: Category.OTHER),
   ];
   late final MixAndMatchCubit cubit;
+  bool isFromCameraScreen = false;
 
   @override
   void initState() {
     cubit = context.read<MixAndMatchCubit>();
+    isFromCameraScreen =
+        widget.isFromCameraScreen is bool && widget.isFromCameraScreen == true;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-
     return Scaffold(
       appBar: CustomAppBar(
-        title: l10n.mixAndMatchScreenTitle,
-        subtitle: l10n.mixAndMatchScreenSubtitle,
+        title: _title(),
+        subtitle: _subtitle(),
         leading: _handleBackButton(context),
       ),
       body: Padding(
         padding: const EdgeInsets.all(Styles.defaultMargin),
         child: Column(
           children: [
-            BlocBuilder<MixAndMatchCubit, List<Item>>(
+            BlocBuilder<MixAndMatchCubit, MixAndMatchState>(
               builder: (context, state) {
-                return categoryGrid(state);
+                return categoryGrid(state.items);
               },
             ),
             const Spacer(),
@@ -64,6 +71,20 @@ class _MixAndMatchScreenState extends State<MixAndMatchScreen> {
     );
   }
 
+  String _subtitle() {
+    if (isFromCameraScreen) {
+      return context.l10n.itemProfileScreenItemCreationSubtitle;
+    }
+    return context.l10n.mixAndMatchScreenSubtitle;
+  }
+
+  String _title() {
+    if (isFromCameraScreen) {
+      return context.l10n.itemProfileScreenItemCreationTitle;
+    }
+    return context.l10n.mixAndMatchScreenTitle;
+  }
+
   Widget categoryGrid(List<Item> selectableBoxes) {
     return GridView.count(
       shrinkWrap: true,
@@ -76,22 +97,32 @@ class _MixAndMatchScreenState extends State<MixAndMatchScreen> {
           category: category,
           isSelected: selectableBoxes.any((i) => i.category == category),
           onTap: () {
-            _handleAddCategory(selectableBoxes, category, item);
+            _handleItemTap(selectableBoxes, category, item);
           },
         );
       }),
     );
   }
 
-  void _handleAddCategory(
+  void _handleItemTap(
     List<Item> selectableBoxes,
     Category category,
     Item item,
   ) {
-    if (selectableBoxes.any((i) => i.category == category)) {
-      cubit.removeItem(item);
+    if (isFromCameraScreen && context.mounted) {
+      final updatedItemToAdd =
+          context.read<ItemBloc>().state.itemToAdd?.copyWith(
+                    category: category,
+                  ) ??
+              Item(category: category);
+      BlocProvider.of<ItemBloc>(context).add(UpdateItemToAdd(updatedItemToAdd));
+      AppNavigator.push(AppRoute.root, arguments: 3);
     } else {
-      cubit.addItem(item);
+      if (selectableBoxes.any((i) => i.category == category)) {
+        cubit.removeItem(item);
+      } else {
+        cubit.addItem(item);
+      }
     }
   }
 

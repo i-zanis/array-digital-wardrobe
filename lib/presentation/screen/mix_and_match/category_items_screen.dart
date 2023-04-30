@@ -1,45 +1,25 @@
+import 'package:Array_App/config/style_config.dart';
+import 'package:Array_App/l10n/l10n.dart';
+import 'package:Array_App/presentation/widget/widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../bloc/item/item_bloc.dart';
-import '../../../bloc/item/item_state.dart';
-import '../../../bloc/item/mix_and_match_cubit.dart';
-import '../../../domain/entity/item/category.dart';
-
-class CategoryItemsScreen extends StatelessWidget {
-  final Category selectedCategory;
-
-  CategoryItemsScreen({required this.selectedCategory});
+class MixAndMatchCategoryItemsScreen extends StatelessWidget {
+  const MixAndMatchCategoryItemsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Category Items'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+      appBar: CustomAppBar(
+        title: l10n.mixAndMatchScreenTitle,
+        subtitle: l10n.mixAndMatchAddFromWardrobe,
+        showLeading: true,
       ),
-      body: BlocBuilder<ItemBloc, ItemState>(
-        builder: (context, state) {
-          final items = state.items
-              .where((item) => item.category == selectedCategory)
-              .toList();
-          return SingleChildScrollView(
-            child: Column(
-              children: items.map((item) {
-                return ListTile(
-                  title: Text(item?.name ?? 'No name'),
-                  onTap: () {
-                    context.read<MixAndMatchCubit>().addCategory(item);
-                    Navigator.pop(context);
-                  },
-                );
-              }).toList(),
-            ),
-          );
-        },
+      body: const SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(Styles.defaultMargin),
+          child: ItemGridView(isSelectionMode: true),
+        ),
       ),
     );
   }

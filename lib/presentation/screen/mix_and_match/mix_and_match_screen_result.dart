@@ -33,12 +33,12 @@ class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
     final l10n = context.l10n;
     final backgroundColors = <Color>[
       Theme.of(context).colorScheme.primaryContainer,
-      Theme.of(context).extension<CustomColors>()!.extended2Container!,
+      Theme.of(context).extension<CustomColors>()!.extended1Container!,
       Theme.of(context).colorScheme.tertiaryContainer
     ];
     final textColors = <Color>[
       Theme.of(context).colorScheme.onPrimaryContainer,
-      Theme.of(context).extension<CustomColors>()!.onExtended2Container!,
+      Theme.of(context).extension<CustomColors>()!.onExtended1Container!,
       Theme.of(context).colorScheme.onTertiaryContainer,
     ];
 
@@ -110,7 +110,7 @@ class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
               ),
               CustomFilledButton(
                 onPressed: () =>
-                    _handleContinue(l10n.mixAndMatchScreenButtonContinue),
+                    _handleContinue(l10n.mixAndMatchResultScreenConfirmError),
                 content: l10n.mixAndMatchConfirm,
               ),
             ],
@@ -174,7 +174,7 @@ class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
   }
 
   void _handleContinue(String snackBarContent) {
-    if (selectedBoxes.isEmpty) {
+    if (selectedBoxes.isEmpty | selectedBoxes.any((item) => item.id == null)) {
       showSnackBar(context, snackBarContent);
     } else {
       AppNavigator.push<void>(AppRoute.lookStudio);
