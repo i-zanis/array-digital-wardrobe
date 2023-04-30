@@ -9,35 +9,37 @@ class ItemGridProvider extends StatelessWidget {
     this.height = 380,
     this.isLooks = false,
     required this.items,
+    this.isSelectionMode = false,
   });
 
   final List<Item> items;
   final double height;
   final bool isLooks;
+  final bool isSelectionMode;
 
   @override
   Widget build(BuildContext context) {
     final imageHeight = height * 0.5;
-    final filteredItems = items;
-
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         GridView.count(
           crossAxisCount: 2,
-          crossAxisSpacing: Styles.defaultPadding,
+          crossAxisSpacing: Styles.paddingS,
           mainAxisSpacing: Styles.defaultPadding,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 1 / 1.7,
+          // width == 0.7 * height
+          childAspectRatio: 0.7,
           children: List.generate(
-            filteredItems.length,
+            items.length,
             (index) {
-              final item = filteredItems[index];
+              final item = items[index];
               return InteractiveGridItem(
                 item: item,
                 height: imageHeight,
                 isTappable: true,
+                isSelectionMode: isSelectionMode,
               );
             },
           ),
