@@ -6,15 +6,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalItemDataSource {
   factory LocalItemDataSource() {
-    return _eagerInstance;
+    return _instance;
   }
 
   // _internal is a private constructor You can create any private constructor
   // using any Class._someName construction
   LocalItemDataSource._internal();
 
-  static final LocalItemDataSource _eagerInstance =
-      LocalItemDataSource._internal();
+  static final LocalItemDataSource _instance = LocalItemDataSource._internal();
   static final SharedPreferences? _prefs = sharedPrefs;
   static const String _itemsKey = 'items';
 
@@ -29,9 +28,7 @@ class LocalItemDataSource {
 
   Future<void> save(Item item) async {
     final items = await findAll();
-    logger..i('LocalItemDataSource: Saving item')
-        // ..i('LocalItemDataSource: ${item.toJson()}' )
-        ;
+    logger.i('$LocalItemDataSource: Saving item');
 
     final itemsWithoutUpdated = items.where((i) => item.id != i.id).toList()
       ..add(item);
@@ -51,14 +48,14 @@ class LocalItemDataSource {
   }
 
   Future<void> delete(int id) async {
-    logger.i('LocalItemDataSource: Deleting item with id: $id');
+    logger.i('$LocalItemDataSource: Deleting item with id: $id');
     final items = await findAll();
     final itemsWithoutDeleted = items.where((i) => id != i.id).toList();
     await saveAll(itemsWithoutDeleted);
   }
 
   Future<void> update(Item item) async {
-    logger.i('LocalItemDataSource: Updating item: ${item.toJson()}');
+    logger.i('$LocalItemDataSource: Updating item: ${item.id}');
     final items = await findAll();
     final itemsWithoutUpdated = items.where((i) => item.id != i.id).toList()
       ..add(item);
@@ -66,7 +63,7 @@ class LocalItemDataSource {
   }
 
   Future<Item> findById(int id) async {
-    logger.i('LocalItemDataSource: Retrieving item with id: $id');
+    logger.i('$LocalItemDataSource: Retrieving item with id: $id');
     final items = await findAll();
     final item = items.firstWhere((i) => id == i.id);
     return item;
