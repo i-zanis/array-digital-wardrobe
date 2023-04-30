@@ -1,10 +1,9 @@
 import 'package:Array_App/config/config.dart';
+import 'package:Array_App/data/network/network_client.dart';
 import 'package:Array_App/data/network/network_client_factory.dart';
 import 'package:Array_App/domain/entity/weather/current_weather_data.dart';
 import 'package:Array_App/main_development.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-import '../../network/network_client.dart';
 
 class RemoteWeatherDataSource {
   RemoteWeatherDataSource({NetworkClient? client, String? baseUrl})
