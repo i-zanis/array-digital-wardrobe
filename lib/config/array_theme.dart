@@ -1,35 +1,23 @@
+import 'package:Array_App/config/color_scheme.dart';
+import 'package:Array_App/config/custom_color.dart';
 import 'package:flutter/material.dart';
 
 class ArrayTheme {
   static ThemeData get light {
     return ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: Colors.white,
-      appBarTheme: const AppBarTheme(
-        color: Color(0xFF13B9FF),
-      ),
-      colorScheme: ColorScheme.fromSwatch(
-        accentColor: const Color(0xFF13B9FF),
-      ),
-      snackBarTheme: const SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-      ),
+      colorScheme: CScheme.light2,
+      brightness: Brightness.light,
+      extensions: [lightCustomColors],
     );
   }
 
   static ThemeData get dark {
     return ThemeData(
       useMaterial3: true,
-      appBarTheme: const AppBarTheme(
-        color: Color(0xFF13B9FF),
-      ),
-      colorScheme: ColorScheme.fromSwatch(
-        brightness: Brightness.dark,
-        accentColor: const Color(0xFF13B9FF),
-      ),
-      snackBarTheme: const SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-      ),
+      colorScheme: CScheme.dark2,
+      brightness: Brightness.dark,
+      extensions: [darkCustomColors],
     );
   }
 }
