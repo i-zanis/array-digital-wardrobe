@@ -11,13 +11,17 @@ class LookSearchCubit extends Cubit<List<Look>> {
 
   final ItemBloc itemBloc;
 
+  void refresh(BuildContext context) {
+    late final itemBloc = context.read<ItemBloc>();
+    emit(itemBloc.state.looks);
+  }
+
   void filterItems(BuildContext context, String query) {
     late final itemBloc = context.read<ItemBloc>();
     logger.i('$LookSearchCubit: filterItems ${itemBloc.state.looks.length}');
     final filteredLooks = itemBloc.state.looks
         .where((look) => lookContainsQuery(look, query))
         .toList();
-
     emit(filteredLooks);
   }
 
