@@ -262,7 +262,15 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(Styles.paddingS),
-                      child: _favoriteButton(),
+                      child: FavoriteButton(
+                        item: context.read<ItemBloc>().state.itemToAdd ??
+                            Item.empty(),
+                        onFavoriteToggle: (updatedItem) {
+                          BlocProvider.of<ItemBloc>(context).add(
+                            UpdateItemToAdd(updatedItem),
+                          );
+                        },
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(Styles.paddingS),
@@ -275,17 +283,6 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
           );
         }
         return Container();
-      },
-    );
-  }
-
-  FavoriteButton _favoriteButton() {
-    return FavoriteButton(
-      item: context.read<ItemBloc>().state.itemToAdd ?? Item.empty(),
-      onFavoriteToggle: (updatedItem) {
-        BlocProvider.of<ItemBloc>(context).add(
-          UpdateItemToAdd(updatedItem),
-        );
       },
     );
   }
@@ -345,19 +342,20 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
           .toList(),
     );
 
-    _save(context, item, l10);
+    _saveItem(context, item, l10);
   }
 
-  void _save(BuildContext context, Item item, AppLocalizations l10) {
-    context.read<ItemBloc>().add(
-          SaveItem(item),
-        );
-    //TODO(jtl): add snackbar back
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   SnackBar(
-    //     content: Text(l10.itemProfileScreenNotificationSave),
-    //   ),
-    // );
+  void _saveItem(BuildContext context, Item item, AppLocalizations l10) {
+    if (item.id == null) {
+      context.read<ItemBloc>().add(
+            SaveItem(item),
+          );
+    } else {
+      context.read<ItemBloc>().add(
+            UpdateItem(item),
+          );
+    }
+    showSnackBar(context, l10.itemProfileScreenNotificationSave);
     AppNavigator.push<void>(AppRoute.root);
   }
 

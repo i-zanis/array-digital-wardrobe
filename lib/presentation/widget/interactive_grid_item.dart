@@ -81,7 +81,17 @@ class _InteractiveGridItemState extends State<InteractiveGridItem> {
                     fit: BoxFit.fill,
                   ),
                 ),
-                _favouriteButton(context, item)
+                Padding(
+                  padding: const EdgeInsets.all(Styles.paddingS),
+                  child: FavoriteButton(
+                    item: item,
+                    onFavoriteToggle: (updatedItem) {
+                      BlocProvider.of<ItemBloc>(context).add(
+                        UpdateItemToAdd(updatedItem),
+                      );
+                    },
+                  ),
+                ),
               ],
             )
           else
@@ -106,25 +116,6 @@ class _InteractiveGridItemState extends State<InteractiveGridItem> {
     } else {
       return container;
     }
-  }
-
-  Padding _favouriteButton(BuildContext context, Item item) {
-    return Padding(
-      padding: const EdgeInsets.all(Styles.paddingS),
-      child: FavoriteButton(
-        item: item,
-        onFavoriteToggle: (item) {
-          BlocProvider.of<ItemBloc>(context).add(
-            UpdateItemToAdd(item),
-          );
-          // TODO(jtl): to remove userid when user implemented
-          final modifiedItem = item.copyWith(userId: item.userId ?? 1);
-          context.read<ItemBloc>().add(
-                UpdateItem(modifiedItem),
-              );
-        },
-      ),
-    );
   }
 
   void _handleFromMixAndMatch(BuildContext context, Item item) {

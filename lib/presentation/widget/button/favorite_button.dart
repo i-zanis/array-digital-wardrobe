@@ -1,33 +1,45 @@
 import 'package:Array_App/domain/entity/item/item.dart';
 import 'package:flutter/material.dart';
 
-class FavoriteButton extends StatelessWidget {
-  const FavoriteButton(
-      {super.key,
-      required this.item,
-      required this.onFavoriteToggle,
-      this.color});
+class FavoriteButton extends StatefulWidget {
+  const FavoriteButton({
+    super.key,
+    required this.item,
+    required this.onFavoriteToggle,
+    this.color,
+  });
 
   final Item item;
   final void Function(Item item) onFavoriteToggle;
   final Color? color;
 
   @override
-  Widget build(BuildContext context) {
-    final isFavorite = item.isFavorite ?? false;
-    return InkWell(
-      onTap: () {
-        final updatedItem = item.copyWith(isFavorite: !isFavorite);
-        onFavoriteToggle(updatedItem);
-      },
-      child: _getFavoriteIcon(context, isFavorite),
-    );
+  State createState() => _FavoriteButtonState();
+}
+
+class _FavoriteButtonState extends State<FavoriteButton> {
+  late bool _isFavorite;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavorite = widget.item.isFavorite ?? false;
   }
 
-  Widget _getFavoriteIcon(BuildContext context, bool isFavorite) {
-    return Icon(
-      isFavorite ? Icons.favorite : Icons.favorite_border,
-      color: color ?? Theme.of(context).colorScheme.tertiary,
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        final updatedItem = widget.item.copyWith(isFavorite: !_isFavorite);
+        widget.onFavoriteToggle(updatedItem);
+        setState(() {
+          _isFavorite = !_isFavorite;
+        });
+      },
+      child: Icon(
+        _isFavorite ? Icons.favorite : Icons.favorite_border,
+        color: widget.color ?? Theme.of(context).colorScheme.tertiary,
+      ),
     );
   }
 }
