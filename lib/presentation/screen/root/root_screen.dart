@@ -1,12 +1,15 @@
+import 'package:Array_App/bloc/search/item_search_cubit.dart';
+import 'package:Array_App/bloc/search/look_search_cubit.dart';
 import 'package:Array_App/core/route/route.dart';
+import 'package:Array_App/l10n/l10n.dart';
 import 'package:Array_App/presentation/screen/home/home_screen.dart';
 import 'package:Array_App/presentation/screen/item_profile/item_profile_screen.dart';
 import 'package:Array_App/presentation/screen/look_book/look_book_screen.dart';
 import 'package:Array_App/presentation/screen/wardrobe/wardrobe_screen.dart';
 import 'package:Array_App/presentation/widget/custom_app_bar.dart';
+import 'package:Array_App/rest/util/number_functions.dart';
 import 'package:flutter/material.dart';
-
-import '../../../rest/util/number_functions.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key, this.initialScreenIndex = 0});
@@ -41,10 +44,20 @@ class _RootScreenState extends State<RootScreen> {
     return false;
   }
 
+  void refreshBloc(BuildContext context, int index) {
+    if (index == 1) {
+      context.read<LookSearchCubit>().refresh(context);
+    }
+    if (index == 2) {
+      context.read<ItemSearchCubit>().refresh(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: const CustomAppBar(
         height: 0,
       ),
       body: SafeArea(
@@ -59,30 +72,31 @@ class _RootScreenState extends State<RootScreen> {
           setState(() {
             currentScreenIndex = index;
           });
+          refreshBloc(context, index);
         },
         selectedIndex: currentScreenIndex,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            selectedIcon: Icon(Icons.home),
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
+            selectedIcon: const Icon(Icons.home),
+            icon: const Icon(Icons.home_outlined),
+            label: l10n.appBarHome,
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.book),
-            icon: Icon(Icons.book_outlined),
-            label: 'Look Book',
+            selectedIcon: const Icon(Icons.book),
+            icon: const Icon(Icons.book_outlined),
+            label: l10n.appBarLookBook,
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.checkroom),
-            icon: Icon(Icons.checkroom_outlined),
-            label: 'Wardrobe',
+            selectedIcon: const Icon(Icons.checkroom),
+            icon: const Icon(Icons.checkroom_outlined),
+            label: l10n.appBarWardrobe,
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.add_a_photo),
-            icon: Icon(
+            selectedIcon: const Icon(Icons.add_a_photo),
+            icon: const Icon(
               Icons.add_a_photo_outlined,
             ),
-            label: 'Add',
+            label: l10n.appBarAdd,
           ),
         ],
       ),
