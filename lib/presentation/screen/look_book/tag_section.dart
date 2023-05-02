@@ -11,10 +11,14 @@ class TagSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final labelTextStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: Theme.of(context).colorScheme.onBackground,
+              fontWeight: FontWeight.bold,
+            ) ??
+        const TextStyle();
     final itemToAdd = context.read<ItemBloc>().state.itemToAdd ?? Item.empty();
     final hasTags = itemToAdd.tags != null && itemToAdd.tags!.isNotEmpty;
     final tagChips = <Widget>[];
-    tagChips.add(const CustomChip(content: 'Tags: '));
     if (hasTags) {
       for (final tag in itemToAdd.tags!) {
         tagChips.add(CustomChip(content: tag.name!.toUpperCase()));
@@ -24,11 +28,14 @@ class TagSection extends StatelessWidget {
       heroTag: 'addTag',
       onPressed: () => {},
     ));
-    return Wrap(
-      alignment: WrapAlignment.start,
-      spacing: 8, // Adjust spacing between chips as needed
-      runSpacing: 4, // Adjust run spacing between rows as needed
-      children: tagChips,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Wrap(
+        alignment: WrapAlignment.start,
+        spacing: 8, // Adjust spacing between chips as needed
+        runSpacing: 4, // Adjust run spacing between rows as needed
+        children: tagChips,
+      ),
     );
   }
 }
