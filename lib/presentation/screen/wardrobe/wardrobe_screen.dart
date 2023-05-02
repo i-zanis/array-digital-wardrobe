@@ -1,14 +1,13 @@
 import 'package:Array_App/bloc/search/item_search_cubit.dart';
+import 'package:Array_App/config/style_config.dart';
+import 'package:Array_App/domain/entity/entity.dart';
 import 'package:Array_App/l10n/l10n.dart';
+import 'package:Array_App/presentation/widget/constant/box.dart';
+import 'package:Array_App/presentation/widget/custom_app_bar.dart';
 import 'package:Array_App/presentation/widget/item_grid_provider.dart';
+import 'package:Array_App/presentation/widget/search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../config/style_config.dart';
-import '../../../domain/entity/entity.dart';
-import '../../widget/constant/box.dart';
-import '../../widget/custom_app_bar.dart';
-import '../../widget/search_bar.dart';
 
 class WardrobeScreen extends StatefulWidget {
   const WardrobeScreen({super.key});
@@ -67,7 +66,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
             children: [
               _searchBar(l10n),
               Box.h8,
-              _categoryList(),
+              _categoryList(context),
               _itemList(searchCubit),
               SizedBox(height: MediaQuery.of(context).size.height * 0.1),
             ],
@@ -84,15 +83,24 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     );
   }
 
-  Widget _categoryList() {
+  Widget _categoryList(BuildContext context) {
+    final l10n = context.l10n;
     return SizedBox(
       height: 48,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: Category.values.length,
         itemBuilder: (BuildContext context, int index) {
+          final categoryList = <String>[
+            l10n.categoryTop,
+            l10n.categoryBottom,
+            l10n.categoryShoes,
+            l10n.categoryAccessories,
+            l10n.categoryInnerwear,
+            l10n.categoryOther
+          ];
           final category = Category.values[index];
-          final categoryName = category.toString().split('.').last;
+          final categoryName = categoryList[index];
           final isSelected = categories.contains(category);
           return InkWell(
             onTap: () => _onCategorySelected(category),
@@ -121,10 +129,10 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     return BlocBuilder<ItemSearchCubit, List<Item>>(
       builder: (context, state) {
         if (state.isEmpty) {
-          return const Column(
+          return Column(
             children: [
-              // SizedBox(height: MediaQuery.of(context).size.height * 0.4),
-              Center(child: Text('No items found')),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.4),
+              const Center(child: Text('No items found')),
             ],
           );
         }
