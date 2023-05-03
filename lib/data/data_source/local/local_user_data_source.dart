@@ -1,8 +1,6 @@
+import 'package:Array_App/domain/entity/user/user.dart';
+import 'package:Array_App/main_development.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wardrobe_frontend/data/source/preferences_util.dart';
-import 'package:wardrobe_frontend/domain/entity/user.dart';
-
-import '../../../main_development.dart';
 
 class LocalUserDataSource {
   factory LocalUserDataSource() {
@@ -27,7 +25,7 @@ class LocalUserDataSource {
   Future<User> get() async {
     final userJson = _prefs?.getString(_userKey);
     if (userJson == null) {
-      return User(name: 'Enter name', email: 'Enter email');
+      return User.empty();
     }
     return User.fromJson(userJson as Map<String, dynamic>);
   }

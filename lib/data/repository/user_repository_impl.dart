@@ -1,9 +1,9 @@
-import 'package:wardrobe_frontend/data/source/local/local_user_data_source.dart';
-import 'package:wardrobe_frontend/data/source/remote/remote_user_data_source.dart';
-import 'package:wardrobe_frontend/domain/entity/user.dart';
-import 'package:wardrobe_frontend/domain/user_repository.dart';
+import 'package:Array_App/domain/entity/user/user.dart';
+import 'package:Array_App/domain/repository/user_repository.dart';
+import 'package:Array_App/rest/util/util_functions.dart';
 
-import '../../rest/util/util_functions.dart';
+import '../data_source/local/local_user_data_source.dart';
+import '../data_source/remote/remote_user_data_source.dart';
 
 class UserRepositoryImpl implements UserRepository {
   UserRepositoryImpl(
