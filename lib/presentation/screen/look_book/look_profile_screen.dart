@@ -5,14 +5,13 @@ import 'package:Array_App/core/route/app_navigator.dart';
 import 'package:Array_App/core/route/app_route.dart';
 import 'package:Array_App/domain/entity/entity.dart';
 import 'package:Array_App/l10n/l10n.dart';
+import 'package:Array_App/main_development.dart';
 import 'package:Array_App/presentation/screen/look_book/look_book_component.dart';
 import 'package:Array_App/presentation/widget/indicator/custom_circular_progress_indicator.dart';
 import 'package:Array_App/presentation/widget/widget.dart';
 import 'package:Array_App/rest/util/util_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../main_development.dart';
 
 class LookProfileScreen extends StatefulWidget {
   const LookProfileScreen({super.key});
@@ -180,11 +179,21 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(Styles.paddingS),
-                      child: _favoriteButton(),
+                      child: FavoriteButton(
+                        item: context.read<ItemBloc>().state.itemToAdd ??
+                            Item.empty(),
+                        onFavoriteToggle: (updatedItem) {
+                          BlocProvider.of<ItemBloc>(context).add(
+                            UpdateItemToAdd(updatedItem),
+                          );
+                        },
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(Styles.paddingS),
-                      child: _deleteButton(),
+                      child: DeleteButton(
+                        onDelete: _handleDelete,
+                      ),
                     )
                   ],
                 ),
@@ -194,24 +203,6 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
         }
         return Container();
       },
-    );
-  }
-
-  FavoriteButton _favoriteButton() {
-    return FavoriteButton(
-      item: context.read<ItemBloc>().state.itemToAdd ?? Item.empty(),
-      onFavoriteToggle: (updatedItem) {
-        BlocProvider.of<ItemBloc>(context).add(
-          UpdateItemToAdd(updatedItem),
-        );
-      },
-    );
-  }
-
-  Widget _deleteButton() {
-    return InkWell(
-      onTap: _handleDelete,
-      child: Icon(Icons.delete, color: Theme.of(context).colorScheme.tertiary),
     );
   }
 
@@ -247,11 +238,10 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
       items: lookToAdd?.items ?? [],
       userId: lookToAdd?.userId ?? 1,
     );
-    _save(context, look, l10);
+    _saveLook(context, look, l10);
   }
 
-  void _save(BuildContext context, Look look, AppLocalizations l10) {
-    logger.i('Saving look: $look');
+  void _saveLook(BuildContext context, Look look, AppLocalizations l10) {
     if (look.id == null) {
       context.read<ItemBloc>().add(
             SaveLook(look),
@@ -260,13 +250,8 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
       context.read<ItemBloc>().add(
             UpdateLook(look),
           );
-      //TODO(jtl): add snackbar back
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(
-      //     content: Text(l10.LookProfileScreenNotificationSave),
-      //   ),
-      // );
     }
+    showSnackBar(context, l10.itemProfileScreenNotificationSave);
     AppNavigator.push<void>(AppRoute.root);
   }
 
