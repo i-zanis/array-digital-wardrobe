@@ -56,6 +56,8 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
           SaveItemUseCase(),
           DeleteItemUseCase(),
           UpdateItemUseCase(),
+          SaveLookUseCase(),
+          UpdateLookUseCase(),
           RemoveBackgroundUseCase(),
         )..add(const LoadItem()),
       ),
