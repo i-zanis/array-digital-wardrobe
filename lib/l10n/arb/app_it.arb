@@ -1,6 +1,6 @@
 {
   "@@locale": "it",
-  "locale": "en",
+  "locale": "it",
   "appName": "Array Guardaroba digitale",
   "description": "Descrizione",
   "keywords": "Parole chiavi",
@@ -83,7 +83,7 @@
 
   "@AppBar": {},
   "appBarHome": "Inizio",
-  "appBarLookBook": "Abbinamenti
+  "appBarLookBook": "Abbinamenti",
   "appBarWardrobe": "Guardaroba",
   "appBarAdd": "Aggiungi",
 
