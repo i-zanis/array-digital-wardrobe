@@ -10,7 +10,9 @@ class CustomCircularProgressIndicator extends StatelessWidget {
     return const SizedBox(
       height: 150,
       width: 150,
-      child: CircularProgressIndicator(),
+      child: CircularProgressIndicator(
+        semanticsLabel: 'Loading',
+      ),
     );
   }
 }
