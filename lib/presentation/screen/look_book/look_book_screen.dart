@@ -30,8 +30,9 @@ class _LookBookScreenState extends State<LookBookScreen> {
     final l10n = context.l10n;
     final titleColor = Theme.of(context).colorScheme.onSurface;
     final subtitleColor = Theme.of(context).colorScheme.onSurface;
-    final titleStyle = Theme.of(context).textTheme.headlineSmall?.apply(
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
           color: titleColor,
+          fontWeight: FontWeight.bold,
         );
     final subtitleStyle = Theme.of(context).textTheme.titleSmall?.apply(
           color: subtitleColor,
@@ -57,7 +58,6 @@ class _LookBookScreenState extends State<LookBookScreen> {
               _latestLookSection(l10n, titleStyle, subtitleStyle, titleColor),
               Box.h8,
               _itemList(),
-              const BottomMargin()
             ],
           ),
         ),

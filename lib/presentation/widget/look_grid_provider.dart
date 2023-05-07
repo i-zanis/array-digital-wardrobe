@@ -1,8 +1,7 @@
 import 'package:Array_App/config/style_config.dart';
 import 'package:Array_App/domain/entity/entity.dart';
+import 'package:Array_App/presentation/widget/interactive_grid_look.dart';
 import 'package:flutter/cupertino.dart';
-
-import 'interactive_grid_look.dart';
 
 class LookGridProvider extends StatelessWidget {
   const LookGridProvider({
@@ -26,11 +25,11 @@ class LookGridProvider extends StatelessWidget {
       children: [
         GridView.count(
           crossAxisCount: 2,
-          crossAxisSpacing: Styles.defaultPadding,
+          crossAxisSpacing: Styles.paddingS,
           mainAxisSpacing: Styles.defaultPadding,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 1 / 1.7,
+          childAspectRatio: 0.68888,
           children: List.generate(
             filteredLooks.length,
             (index) {

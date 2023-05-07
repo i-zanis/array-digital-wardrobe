@@ -190,133 +190,65 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _myLatestLook() {
-    final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
+  Widget _latestLookSection() {
     final l10n = context.l10n;
     final titleColor = Theme.of(context).colorScheme.onSurface;
     final subtitleColor = Theme.of(context).colorScheme.onSurface;
     final titleStyle = Theme.of(context).textTheme.headlineSmall?.apply(
           color: titleColor,
+          fontWeight: FontWeight.bold,
         );
     final subtitleStyle = Theme.of(context).textTheme.titleSmall?.apply(
           color: subtitleColor,
         );
-    final textStyleTop = Theme.of(context).textTheme.bodyLarge?.apply(
-          color: titleColor,
-        );
-    final textStyleBottom = Theme.of(context).textTheme.titleMedium?.apply(
-          color: subtitleColor,
-        );
-    Widget latestItemMain(List<Item> last2Items) {
-      return SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 1 / 2,
-              children: List.generate(
-                last2Items.length,
-                (index) {
-                  var brand = last2Items[index].brand ?? '';
-                  if (brand.isEmpty) brand = 'No brand';
-                  var name = last2Items[index].name ?? '';
-                  if (name.isEmpty) name = 'No name';
-                  return Column(
-                    children: [
-                      if (last2Items[index].imageData != null)
-                        Image(
-                          width: double.infinity,
-                          image: MemoryImage(
-                            last2Items[index].imageData!,
-                          ),
-                          fit: BoxFit.fill,
-                        )
-                      else
-                        Container(),
-                      SizedBox8(),
-                      Text(brand, style: textStyleTop),
-                      Text(
-                        name,
-                        style: textStyleBottom,
-                      )
-                    ],
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: height * 0.1),
-          ],
-        ),
-      );
-    }
-
     return SizedBox(
-      width: width,
-      // height: height * 0.5,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.latestLookTitle,
-                      style: titleStyle,
-                    ),
-                    Row(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.latestLookTitle,
+                    style: titleStyle,
+                  ),
+                  Box.h4,
+                  InkWell(
+                    child: Row(
                       children: [
                         Icon(
-                          Icons.favorite_outline,
-                          color: titleColor,
+                          Icons.arrow_circle_right_outlined,
+                          color: subtitleColor,
                         ),
+                        Box.w4,
                         Text(
                           l10n.seeFavouriteLook,
                           style: subtitleStyle,
                         ),
                       ],
                     ),
-                  ],
-                ),
-                const Spacer(),
-                //todo(jtl): add favourite screen and change route
-                FloatingActionButton(
-                  heroTag: 'looksScreen',
-                  onPressed: () => AppNavigator.push<dynamic>(
-                    AppRoute.itemProfile,
+                    // TODO(jtl): fix tap method
+                    onTap: () =>
+                        AppNavigator.push<dynamic>(AppRoute.selectItemInGrid),
                   ),
-                  child: const Icon(Icons.add),
-                )
-              ],
-            ),
-            const SizedBox(height: StyleConfig.defaultMargin),
-            BlocConsumer<ItemBloc, ItemState>(
-              builder: (context, state) {
-                final last2Items = state.items.reversed.take(2).toList();
-                if (state is ItemLoading) {
-                  return const CustomLinearProgressIndicator();
-                } else if (state is ItemLoaded) {
-                  return latestItemMain(last2Items);
-                } else if (state is ItemError) {
-                  return latestItemMain(last2Items);
-                }
-                return latestItemMain(last2Items);
-              },
-              listener: (context, state) {
-                if (state is ItemError) {
-                  showSnackBar(context, l10n.itemLoadError);
-                }
-              },
-            ),
-          ],
-        ),
+                ],
+              ),
+              const Spacer(),
+              //todo(jtl): add favourite screen and change route
+              PlusButton(
+                onPressed: () => {
+                  AppNavigator.push<void>(
+                    AppRoute.selectItemInGrid,
+                  ),
+                },
+                heroTag: l10n.lookBookScreenTitle,
+              ),
+            ],
+          ),
+          Box.h8,
+          const LookGridView()
+        ],
       ),
     );
   }

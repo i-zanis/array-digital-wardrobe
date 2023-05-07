@@ -5,7 +5,6 @@ import 'package:Array_App/core/route/app_navigator.dart';
 import 'package:Array_App/core/route/app_route.dart';
 import 'package:Array_App/domain/entity/entity.dart';
 import 'package:Array_App/l10n/l10n.dart';
-import 'package:Array_App/main_development.dart';
 import 'package:Array_App/presentation/screen/look_book/look_book_component.dart';
 import 'package:Array_App/presentation/widget/indicator/custom_circular_progress_indicator.dart';
 import 'package:Array_App/presentation/widget/widget.dart';
@@ -72,8 +71,8 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: _getTitle(context),
-        subtitle: _getSubtitle(context),
+        title: _title(context),
+        subtitle: _subtitle(context),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -125,7 +124,6 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
     return !isReadOnly
         ? CustomFilledButton(
             onPressed: () {
-              logger.i('itemBloc.state.lookToAdd: ${itemBloc.state.lookToAdd}');
               _handleBottomButton(
                 itemBloc.state.lookToAdd,
                 nameController,
@@ -177,24 +175,24 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(Styles.paddingS),
-                      child: FavoriteButton(
-                        item: context.read<ItemBloc>().state.itemToAdd ??
-                            Item.empty(),
-                        onFavoriteToggle: (updatedItem) {
-                          BlocProvider.of<ItemBloc>(context).add(
-                            UpdateItemToAdd(updatedItem),
-                          );
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(Styles.paddingS),
-                      child: DeleteButton(
-                        onDelete: _handleDelete,
-                      ),
-                    )
+                    // Padding(
+                    //   padding: const EdgeInsets.all(Styles.paddingS),
+                    //   child: FavoriteButton(
+                    //     item: context.read<ItemBloc>().state.itemToAdd ??
+                    //         Item.empty(),
+                    //     onFavoriteToggle: (updatedItem) {
+                    //       BlocProvider.of<ItemBloc>(context).add(
+                    //         UpdateItemToAdd(updatedItem),
+                    //       );
+                    //     },
+                    //   ),
+                    // ),
+                    // Padding(
+                    //   padding: const EdgeInsets.all(Styles.paddingS),
+                    //   child: DeleteButton(
+                    //     onDelete: _handleDelete,
+                    //   ),
+                    // )
                   ],
                 ),
               ),
@@ -214,12 +212,12 @@ class _LookProfileScreenState extends State<LookProfileScreen> {
   }
 
   // TODO(jtl): create dynamic text for readonly
-  String _getTitle(BuildContext context) {
+  String _title(BuildContext context) {
     return context.l10n.lookProfileScreenTitleNew;
   }
 
   // TODO(jtl): create dynamic text for readonly
-  String _getSubtitle(BuildContext context) {
+  String _subtitle(BuildContext context) {
     return context.l10n.lookProfileScreenSubtitleNew;
   }
 
@@ -274,15 +272,22 @@ class ItemsInThisLookSection extends StatelessWidget {
     return BlocBuilder<ItemBloc, ItemState>(
       builder: (context, state) {
         if (state is ItemLoaded) {
-          return Wrap(
-            alignment: WrapAlignment.center,
-            children: lookItems
-                .map(
-                  (item) => LookBookComponent(
-                    item: item,
-                  ),
-                )
-                .toList(),
+          return GridView.builder(
+            itemCount: lookItems.length,
+            shrinkWrap: true,
+            padding: const EdgeInsets.only(right: 16),
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 1.0,
+              crossAxisSpacing: 4.0,
+              mainAxisSpacing: 4.0,
+            ),
+            itemBuilder: (BuildContext context, int index) {
+              return LookBookComponent(
+                item: lookItems[index],
+              );
+            },
           );
         }
         return Container();

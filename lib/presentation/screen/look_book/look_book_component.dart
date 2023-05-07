@@ -94,7 +94,7 @@ class _LookBookComponentState extends State<LookBookComponent> {
             Container(
               width: finalWidth,
               height: height,
-              color: Colors.grey,
+              color: getItemBackgroundColor(context),
               child: Center(
                 child: Text(getStringOrDefault(item.name, 'No name')),
               ),
