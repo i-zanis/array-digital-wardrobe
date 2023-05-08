@@ -7,8 +7,8 @@ import '../../../main_development.dart';
 import '../../network/network_client.dart';
 import '../../network/network_client_factory.dart';
 
-class RemoteBackgroundDataSource {
-  RemoteBackgroundDataSource({NetworkClient? client, String? baseUrl})
+class RemoteRemoveBgDataSource {
+  RemoteRemoveBgDataSource({NetworkClient? client, String? baseUrl})
       : _client = client ?? NetworkClientFactory.create(),
         _baseUrl = baseUrl ?? Config.removeBackgroundService;
 
@@ -16,7 +16,7 @@ class RemoteBackgroundDataSource {
   final String _baseUrl;
 
   Future<File> removeBackground(String imageFilePath) async {
-    logger.i('$RemoteBackgroundDataSource removing background from image');
+    logger.i('$RemoteRemoveBgDataSource removing background from image');
     final imageFile = File(imageFilePath);
     final outputFile = File('${imageFile.path}_no_bg.png');
 
@@ -38,8 +38,8 @@ class RemoteBackgroundDataSource {
       }
     } catch (e) {
       logger
-        ..e('$RemoteBackgroundDataSource: $e')
-        ..e('$RemoteBackgroundDataSource: returning original image file');
+        ..e('$RemoteRemoveBgDataSource: $e')
+        ..e('$RemoteRemoveBgDataSource: returning original image file');
       return imageFile;
     }
   }

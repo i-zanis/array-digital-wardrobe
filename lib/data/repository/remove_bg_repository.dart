@@ -10,11 +10,11 @@ class RemoveBackgroundRepositoryImpl extends RemoveBackgroundRepository {
   }
 
   RemoveBackgroundRepositoryImpl._internal()
-      : _remoteDataSource = RemoteBackgroundDataSource();
+      : _remoteDataSource = RemoteRemoveBgDataSource();
   static final RemoveBackgroundRepositoryImpl _eagerInstance =
       RemoveBackgroundRepositoryImpl._internal();
 
-  final RemoteBackgroundDataSource _remoteDataSource;
+  final RemoteRemoveBgDataSource _remoteDataSource;
   final Duration _timeToLive = const Duration(seconds: 5);
   DateTime _lastUpdate = DateTime(0);
 
