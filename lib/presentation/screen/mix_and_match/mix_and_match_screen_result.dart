@@ -62,7 +62,8 @@ class _MixAndMatchResultScreenState extends State<MixAndMatchResultScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: List.generate(selectedBoxes.length, (index) {
                   final boxColor = backgroundColors[index % 3];
-                  final text1 = selectedBoxes[index].category?.name;
+                  final text1 =
+                      getCategoryName(context, selectedBoxes[index].category);
                   final text2 = l10n.mixAndMatchAddFromWardrobe;
                   return GestureDetector(
                     onTap: () {
