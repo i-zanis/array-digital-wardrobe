@@ -19,9 +19,9 @@
   "homeScreenLabelItems": "Items",
   "homeScreenLabelValue": "Value",
   "homeScreenLabelLooks": "Looks",
-  "latestItemTitle" : "Latest Item",
+  "latestItemTitle" : "Latest Items",
   "seeFavouriteItem": "See favourite item",
-  "latestLookTitle" : "Latest Look",
+  "latestLookTitle" : "Latest Looks",
   "seeFavouriteLook": "See Favourite look",
 	"itemLoadError": "Error loading items",
 
@@ -61,7 +61,7 @@
 
   "@ItemProfileScreen": {},
   "itemProfileScreenTitleNew" : "Wardrobe Addition",
-  "itemProfileScreenSubtitleNew": "Add details of your new item",
+  "itemProfileScreenSubtitleNew": "Add details to your new item",
   "itemProfileScreenTitle" : "Item Profile",
   "itemProfileScreenSubtitle": "Modify item details",
   "itemProfileScreenNamePlaceHolder": "Name this item",
