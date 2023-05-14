@@ -274,7 +274,9 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.all(Styles.paddingS),
-                      child: _deleteButton(),
+                      child: DeleteButton(
+                        onDelete: _handleDelete,
+                      ),
                     )
                   ],
                 ),
@@ -287,18 +289,11 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
     );
   }
 
-  Widget _deleteButton() {
-    return InkWell(
-      onTap: _handleDelete,
-      child: Icon(Icons.delete, color: Theme.of(context).colorScheme.tertiary),
-    );
-  }
-
   void _handleDelete() {
     BlocProvider.of<ItemBloc>(context).add(
       DeleteItem(context.read<ItemBloc>().state.itemToAdd!),
     );
-    AppNavigator.push<void>(AppRoute.root);
+    showSnackBar(context, context.l10n.itemProfileScreenNotificationDelete);
   }
 
   String _title(BuildContext context) {
@@ -347,13 +342,9 @@ class _ItemProfileScreenState extends State<ItemProfileScreen> {
 
   void _saveItem(BuildContext context, Item item, AppLocalizations l10) {
     if (item.id == null) {
-      context.read<ItemBloc>().add(
-            SaveItem(item),
-          );
+      context.read<ItemBloc>().add(SaveItem(item));
     } else {
-      context.read<ItemBloc>().add(
-            UpdateItem(item),
-          );
+      context.read<ItemBloc>().add(UpdateItem(item));
     }
     showSnackBar(context, l10.itemProfileScreenNotificationSave);
     AppNavigator.push<void>(AppRoute.root);
