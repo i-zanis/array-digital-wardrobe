@@ -1,9 +1,9 @@
-import '../../../data/repository/look_repository_impl.dart';
-import '../../../main_development.dart';
-import '../../entity/item/look.dart';
-import '../../exception/look/look_exception.dart';
-import '../../repository/look_repository.dart';
-import '../abstract_use_case.dart';
+import 'package:Array_App/data/repository/look_repository_impl.dart';
+import 'package:Array_App/domain/entity/item/look.dart';
+import 'package:Array_App/domain/exception/look/look_exception.dart';
+import 'package:Array_App/domain/repository/look_repository.dart';
+import 'package:Array_App/domain/use_case/abstract_use_case.dart';
+import 'package:Array_App/main_development.dart';
 
 class SaveLookUseCase extends UseCase<Look, Look> {
   SaveLookUseCase({LookRepository? lookRepository})
@@ -13,11 +13,8 @@ class SaveLookUseCase extends UseCase<Look, Look> {
 
   @override
   Future<void> validate(Look look) async {
-    if (look == null) {
-      throw LookException(message: 'Look is null');
-    }
-    if (look.items == null || look.items!.isEmpty) {
-      throw LookException(message: 'Look items are null or empty');
+    if (look.id != null) {
+      throw LookException(message: 'Look id must be null for new look');
     }
   }
 
