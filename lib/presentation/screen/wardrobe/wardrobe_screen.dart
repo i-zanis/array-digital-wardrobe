@@ -68,7 +68,6 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
               Box.h8,
               _categoryList(context),
               _itemList(searchCubit),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.1),
             ],
           ),
         ),
