@@ -26,7 +26,8 @@ class LoadWeatherUseCase implements UseCase<CurrentWeatherData, String> {
     }
     if (_isInvalidCityName(city)) {
       throw WeatherUseCaseException(
-          message: 'City name contains invalid characters');
+        message: 'City name contains invalid characters',
+      );
     }
     if (_isInvalidCityNameLength(city)) {
       throw WeatherUseCaseException(

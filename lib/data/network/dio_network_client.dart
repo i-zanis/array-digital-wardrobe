@@ -6,7 +6,6 @@ class DioNetworkClient implements NetworkClient {
   DioNetworkClient() {
     _dio.options.connectTimeout = const Duration(seconds: 5);
     _dio.options.receiveTimeout = const Duration(seconds: 5);
-    // _dio.interceptors.add(LogInterceptor(responseBody: true));
   }
 
   static final Dio _dio = Dio();
@@ -42,7 +41,7 @@ class DioNetworkClient implements NetworkClient {
         options: Options(
           headers: headers,
           contentType: 'multipart/form-data',
-          responseType: ResponseType.bytes, // Set responseType here
+          responseType: ResponseType.bytes,
         ),
       );
     } on DioError catch (e) {
